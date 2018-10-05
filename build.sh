@@ -11,10 +11,9 @@
 # git submodule update --init --recursive
 #
 
-# pushd depends_path
-# libtoolize && aclocal && autoheader && autoconf && automake --add-missing
-# sh configure
-# popd
+libtoolize && aclocal && autoheader && autoconf && automake --add-missing
+sh configure
+
 
 rm -rf build
 mkdir build
