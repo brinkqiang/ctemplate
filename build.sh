@@ -6,8 +6,8 @@
 #
 
 # - clone code
-# git clone https://github.com/brinkqiang/ctemplate.git
-# pushd ctemplate
+# git clone https://github.com/brinkqiang/dmtemplate.git
+# pushd dmtemplate
 # git submodule update --init --recursive
 #
 
