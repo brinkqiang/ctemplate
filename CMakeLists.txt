@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-PROJECT(ctemplate)
+PROJECT(dmtemplate)
 
 ADD_DEFINITIONS(-DCTEMPLATE_DLL_DECL=)
 LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
@@ -39,4 +39,4 @@ IF (WIN32)
     LIST(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/windows/port.cc)
 ENDIF(WIN32)
 
-ADD_LIBRARY(ctemplate ${SOURCES})
+ADD_LIBRARY(dmtemplate ${SOURCES})
