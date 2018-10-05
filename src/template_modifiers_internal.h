@@ -91,38 +91,38 @@ class TemplateModifier;
 //           that are considered to produce safe output and hence
 //           do not need further escaping. Also includes the :none modifier.
 enum XssClass {
-    XSS_UNUSED,
-    XSS_WEB_STANDARD,
-    XSS_UNIQUE,
-    XSS_SAFE,
+  XSS_UNUSED,
+  XSS_WEB_STANDARD,
+  XSS_UNIQUE,
+  XSS_SAFE,
 };
 
 // TODO(csilvers): collapse this into the TemplateModifier class?
 struct ModifierInfo {
-    // longname should end in an '=' iff the modifier takes a value
-    //   (same as in getopt(3)).
-    // To specialize -- add a modifier that applies only when we see the name
-    //   with a particular value -- specify longname like so: "longname=value".
-    //   (See example in the comment-doc below, for AddModifier.)
-    // sn can be '\0' if there is no associated shortname.
-    // m should be NULL *only if* default-registering a user-defined longname
-    //   that the user neglected to register themselves.  In this case, we
-    //   use the null modifier as the actual modifier.
-    // xss_class indicates an equivalence class this modifier is
-    // in, such that any other modifier in the class could be applied
-    // after this modifier without affecting its XSS-safety.  If in
-    // doubt, say XSS_UNIQUE, which is the most conservative choice.
-    ModifierInfo( string ln, char sn, XssClass xc, const TemplateModifier* m )
-        : long_name( ln ), short_name( sn ),
-          modval_required( strchr( ln.c_str(), '=' ) != NULL ),
-          is_registered( m != NULL ), xss_class( xc ),
-          modifier( m ? m : & null_modifier ) { }
-    string long_name;
-    char short_name;
-    bool modval_required;           // true iff ln has an '=' in it
-    bool is_registered;             // true for built-in and AddModifier mods
-    XssClass xss_class;
-    const TemplateModifier* modifier;
+  // longname should end in an '=' iff the modifier takes a value
+  //   (same as in getopt(3)).
+  // To specialize -- add a modifier that applies only when we see the name
+  //   with a particular value -- specify longname like so: "longname=value".
+  //   (See example in the comment-doc below, for AddModifier.)
+  // sn can be '\0' if there is no associated shortname.
+  // m should be NULL *only if* default-registering a user-defined longname
+  //   that the user neglected to register themselves.  In this case, we
+  //   use the null modifier as the actual modifier.
+  // xss_class indicates an equivalence class this modifier is
+  // in, such that any other modifier in the class could be applied
+  // after this modifier without affecting its XSS-safety.  If in
+  // doubt, say XSS_UNIQUE, which is the most conservative choice.
+  ModifierInfo(string ln, char sn, XssClass xc, const TemplateModifier* m)
+      : long_name(ln), short_name(sn),
+        modval_required(strchr(ln.c_str(), '=') != NULL),
+        is_registered(m != NULL), xss_class(xc),
+        modifier(m ? m : &null_modifier) { }
+  string long_name;
+  char short_name;
+  bool modval_required;           // true iff ln has an '=' in it
+  bool is_registered;             // true for built-in and AddModifier mods
+  XssClass xss_class;
+  const TemplateModifier* modifier;
 };
 
 // An escaping directive is completely defined by the escaping function to use
@@ -131,12 +131,12 @@ struct ModifierInfo {
 // Note: The given value pointer must be valid for the life of the struct.
 // Also, value is not null-terminated.
 struct ModifierAndValue {
-    ModifierAndValue( const ModifierInfo* mod_info, const char* val,
-                      size_t val_len )
-        : modifier_info( mod_info ), value( val ), value_len( val_len ) { }
-    const ModifierInfo* modifier_info;
-    const char* value;
-    size_t value_len;
+  ModifierAndValue(const ModifierInfo* mod_info, const char* val,
+                   size_t val_len)
+      : modifier_info(mod_info), value(val), value_len(val_len) { }
+  const ModifierInfo* modifier_info;
+  const char* value;
+  size_t value_len;
 };
 
 // Returns whether or not candidate can be safely (w.r.t XSS)
@@ -147,15 +147,15 @@ struct ModifierAndValue {
 // Note that this function is not commutative therefore
 // IsSafeXSSAlternative(a, b) may not be equal to IsSafeXSSAlternative(b, a).
 extern CTEMPLATE_DLL_DECL
-bool IsSafeXSSAlternative( const ModifierInfo& our,
-                           const ModifierInfo& candidate );
+bool IsSafeXSSAlternative(const ModifierInfo& our,
+                          const ModifierInfo& candidate);
 
 // modname is the name of the modifier (shortname or longname).
 // value is the modifier-value (empty string if there is no modval).
 // Returns a pointer into g_modifiers, or NULL if not found.
 extern CTEMPLATE_DLL_DECL
-const ModifierInfo* FindModifier( const char* modname, size_t modname_len,
-                                  const char* modval, size_t modval_len );
+const ModifierInfo* FindModifier(const char* modname, size_t modname_len,
+                                 const char* modval, size_t modval_len);
 
 
 // Convenience function to dump the (zero or more) modifiers (and values)
@@ -166,10 +166,10 @@ const ModifierInfo* FindModifier( const char* modname, size_t modname_len,
 extern CTEMPLATE_DLL_DECL
 string PrettyPrintModifiers(
     const vector<const ModifierAndValue*>& modvals,
-    const string& separator );
+    const string& separator);
 
 extern CTEMPLATE_DLL_DECL
-string PrettyPrintOneModifier( const ModifierAndValue& modval );
+string PrettyPrintOneModifier(const ModifierAndValue& modval);
 
 // Returns the appropriate escaping directives to escape content in an
 // HTML or Javascript context. HTML and Javascript contexts exercise
@@ -181,7 +181,7 @@ string PrettyPrintOneModifier( const ModifierAndValue& modval );
 // to change.
 extern CTEMPLATE_DLL_DECL
 vector<const ModifierAndValue*> GetModifierForHtmlJs(
-    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg );
+    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg);
 
 // Returns the appropriate escaping directives to escape content
 // in a CSS context.
@@ -191,7 +191,7 @@ vector<const ModifierAndValue*> GetModifierForHtmlJs(
 // that take URLs, which require a different escaping function (non-existent).
 extern CTEMPLATE_DLL_DECL
 vector<const ModifierAndValue*> GetModifierForCss(
-    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg );
+    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg);
 
 // Returns the appropriate escaping directives to escape content
 // in an XML context.
@@ -199,7 +199,7 @@ vector<const ModifierAndValue*> GetModifierForCss(
 // parser nor can it fail. This may change once the parser can parse XML.
 extern CTEMPLATE_DLL_DECL
 vector<const ModifierAndValue*> GetModifierForXml(
-    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg );
+    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg);
 
 // Returns the appropriate escaping directives to escape content
 // in a JSON context.
@@ -208,7 +208,7 @@ vector<const ModifierAndValue*> GetModifierForXml(
 // and distinguish different contexts within JSON.
 extern CTEMPLATE_DLL_DECL
 vector<const ModifierAndValue*> GetModifierForJson(
-    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg );
+    ctemplate_htmlparser::HtmlParser* htmlparser, string* error_msg);
 
 // Return the default escaping directives to escape content for the given
 // context. These methods are useful when the caller does not have

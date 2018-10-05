@@ -47,68 +47,58 @@
 namespace ctemplate {
 
 class FileStat {
-  public:
-    time_t mtime;
-    off_t length;
-    bool IsDirectory() {
-        return S_ISDIR( internal_statbuf.st_mode );
-    }
+ public:
+  time_t mtime;
+  off_t length;
+  bool IsDirectory() { return S_ISDIR(internal_statbuf.st_mode); }
 
-  private:
-    friend class File;
-    struct stat internal_statbuf;
+ private:
+  friend class File;
+  struct stat internal_statbuf;
 };
 
 class File {
-  public:
-    static bool Stat( const std::string& filename, FileStat* statbuf ) {
-        if ( stat( filename.c_str(), &statbuf->internal_statbuf ) != 0 ) {
-            return false;
-        }
+ public:
+  static bool Stat(const std::string& filename, FileStat* statbuf) {
+    if (stat(filename.c_str(), &statbuf->internal_statbuf) != 0)
+      return false;
+    statbuf->mtime = statbuf->internal_statbuf.st_mtime;
+    statbuf->length = statbuf->internal_statbuf.st_size;
+    return true;
+  }
 
-        statbuf->mtime = statbuf->internal_statbuf.st_mtime;
-        statbuf->length = statbuf->internal_statbuf.st_size;
-        return true;
+  static bool Readable(const char* filename) {
+    return access(filename, R_OK) == 0;
+  }
+
+  static File* Open(const char* filename, const char* mode) {
+    char binary_mode[3];
+    const char* mode_to_use = mode;
+    if ((mode[0] == 'r' || mode[0] == 'w') && mode[1] == '\0') {
+      // We add a 'b' to make sure we do the right thing even on
+      // Windows.  On unix, this will be a noop.
+      binary_mode[0] = mode[0];
+      binary_mode[1] = 'b';
+      binary_mode[2] = '\0';
+      mode_to_use = binary_mode;
     }
+    FILE* fp = fopen(filename, mode_to_use);
+    if (!fp)  return NULL;
+    return new File(fp);
+  }
 
-    static bool Readable( const char* filename ) {
-        return access( filename, R_OK ) == 0;
-    }
+  size_t Read(char* buf, size_t size) {
+    return fread(buf, 1, size, fp_);
+  }
 
-    static File* Open( const char* filename, const char* mode ) {
-        char binary_mode[3];
-        const char* mode_to_use = mode;
+  void Close() {
+    fclose(fp_);
+    delete this;   // naughty naughty!
+  }
 
-        if ( ( mode[0] == 'r' || mode[0] == 'w' ) && mode[1] == '\0' ) {
-            // We add a 'b' to make sure we do the right thing even on
-            // Windows.  On unix, this will be a noop.
-            binary_mode[0] = mode[0];
-            binary_mode[1] = 'b';
-            binary_mode[2] = '\0';
-            mode_to_use = binary_mode;
-        }
-
-        FILE* fp = fopen( filename, mode_to_use );
-
-        if ( !fp ) {
-            return NULL;
-        }
-
-        return new File( fp );
-    }
-
-    size_t Read( char* buf, size_t size ) {
-        return fread( buf, 1, size, fp_ );
-    }
-
-    void Close() {
-        fclose( fp_ );
-        delete this;   // naughty naughty!
-    }
-
-  private:
-    explicit File( FILE* fp ) : fp_( fp ) { }
-    FILE* fp_;
+ private:
+  explicit File(FILE* fp) : fp_(fp) { }
+  FILE* fp_;
 };
 
 }

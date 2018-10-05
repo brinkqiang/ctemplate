@@ -95,78 +95,70 @@ enum {LOG_VERBOSE, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL};
 // For example: in {{NAME:j:x-bla}}
 // variable_name is "NAME" and modifiers is "j:x-bla".
 struct VariableAndMod {
-    VariableAndMod( string name, string mods )
-        : variable_name( name ), modifiers( mods ) { }
-    string variable_name;
-    string modifiers;
+  VariableAndMod(string name, string mods)
+      : variable_name(name), modifiers(mods) { }
+  string variable_name;
+  string modifiers;
 };
 typedef vector<VariableAndMod> VariableAndMods;
 
-static string FLAG_template_dir( ctemplate::kCWD ); // "./"
+static string FLAG_template_dir(ctemplate::kCWD);   // "./"
 static string FLAG_strip = "";      // cmd-line arg -s
 static bool FLAG_verbose = false;   // cmd-line arg -v
 
-static void LogPrintf( int severity, const char* pat, ... ) {
-    if ( severity == LOG_VERBOSE && !FLAG_verbose ) {
-        return;
-    }
-
-    if ( severity == LOG_FATAL ) {
-        fprintf( stderr, "FATAL ERROR: " );
-    }
-
-    if ( severity == LOG_VERBOSE ) {
-        fprintf( stdout, "[VERBOSE] " );
-    }
-
-    va_list ap;
-    va_start( ap, pat );
-    vfprintf( severity == LOG_INFO || severity == LOG_VERBOSE ? stdout : stderr,
-              pat, ap );
-    va_end( ap );
-
-    if ( severity == LOG_FATAL ) {
-        exit( 1 );
-    }
+static void LogPrintf(int severity, const char* pat, ...) {
+  if (severity == LOG_VERBOSE && !FLAG_verbose)
+    return;
+  if (severity == LOG_FATAL)
+    fprintf(stderr, "FATAL ERROR: ");
+  if (severity == LOG_VERBOSE)
+    fprintf(stdout, "[VERBOSE] ");
+  va_list ap;
+  va_start(ap, pat);
+  vfprintf(severity == LOG_INFO || severity == LOG_VERBOSE ? stdout: stderr,
+           pat, ap);
+  va_end(ap);
+  if (severity == LOG_FATAL)
+    exit(1);
 }
 
 // Prints to outfile -- usually stdout or stderr -- and then exits
-static int Usage( const char* argv0, FILE* outfile ) {
-    fprintf( outfile, "USAGE: %s [-t<dir>] [-v] [-b] [-s<n>] <file1> <file2>\n",
-             argv0 );
+static int Usage(const char* argv0, FILE* outfile) {
+  fprintf(outfile, "USAGE: %s [-t<dir>] [-v] [-b] [-s<n>] <file1> <file2>\n",
+          argv0);
 
-    fprintf( outfile,
-             "       -t --template_dir=<dir>  Root directory of templates\n"
-             "       -s --strip=<strip>       STRIP_WHITESPACE [default],\n"
-             "                                STRIP_BLANK_LINES, DO_NOT_STRIP\n"
-             "       -h --help                This help\n"
-             "       -v --verbose             For a bit more output\n"
-             "       -V --version             Version information\n" );
-    fprintf( outfile, "\n"
-             "This program reports changes to modifiers between two template\n"
-             "files assumed to be identical except for modifiers applied\n"
-             "to variables. One use case is converting a template to\n"
-             "Auto-Escape and using this program to obtain the resulting\n"
-             "changes in escaping modifiers.\n"
-             "The Strip value should match what you provide in\n"
-             "Template::GetTemplate.\n"
-             "NOTE: Variables that do not have escaping modifiers in one of\n"
-             "two templates are ignored and do not count in the differences.\n" );
-    exit( 0 );
+  fprintf(outfile,
+          "       -t --template_dir=<dir>  Root directory of templates\n"
+          "       -s --strip=<strip>       STRIP_WHITESPACE [default],\n"
+          "                                STRIP_BLANK_LINES, DO_NOT_STRIP\n"
+          "       -h --help                This help\n"
+          "       -v --verbose             For a bit more output\n"
+          "       -V --version             Version information\n");
+  fprintf(outfile, "\n"
+          "This program reports changes to modifiers between two template\n"
+          "files assumed to be identical except for modifiers applied\n"
+          "to variables. One use case is converting a template to\n"
+          "Auto-Escape and using this program to obtain the resulting\n"
+          "changes in escaping modifiers.\n"
+          "The Strip value should match what you provide in\n"
+          "Template::GetTemplate.\n"
+          "NOTE: Variables that do not have escaping modifiers in one of\n"
+          "two templates are ignored and do not count in the differences.\n");
+  exit(0);
 }
 
-static int Version( FILE* outfile ) {
-    fprintf( outfile,
-             "diff_tpl_auto_escape (part of google-template 0.9x)\n"
-             "\n"
-             "Copyright 2008 Google Inc.\n"
-             "\n"
-             "This is BSD licensed software; see the source for copying conditions\n"
-             "and license information.\n"
-             "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\n"
-             "PARTICULAR PURPOSE.\n"
-           );
-    exit( 0 );
+static int Version(FILE* outfile) {
+  fprintf(outfile,
+          "diff_tpl_auto_escape (part of google-template 0.9x)\n"
+          "\n"
+          "Copyright 2008 Google Inc.\n"
+          "\n"
+          "This is BSD licensed software; see the source for copying conditions\n"
+          "and license information.\n"
+          "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\n"
+          "PARTICULAR PURPOSE.\n"
+          );
+  exit(0);
 }
 
 // Populates the vector of VariableAndMods from the DumpToString
@@ -180,62 +172,51 @@ static int Version( FILE* outfile ) {
 // variable name and modifiers when present.
 // Because DumpToString also outputs text nodes, it is possible
 // to trip this function. Probably ok since this is just a helper tool.
-bool LoadVariables( const char* filename, Strip strip,
-                    VariableAndMods& vars_and_mods ) {
-    const string kVariablePreambleText = "Variable Node: ";
-    Template* tpl;
-    tpl = Template::GetTemplate( filename, strip );
+bool LoadVariables(const char* filename, Strip strip,
+                   VariableAndMods& vars_and_mods) {
+  const string kVariablePreambleText = "Variable Node: ";
+  Template *tpl;
+  tpl = Template::GetTemplate(filename, strip);
+  if (tpl == NULL) {
+    LogPrintf(LOG_FATAL, "Could not load file: %s\n", filename);
+    return false;
+  }
 
-    if ( tpl == NULL ) {
-        LogPrintf( LOG_FATAL, "Could not load file: %s\n", filename );
-        return false;
+  string output;
+  tpl->DumpToString(filename, &output);
+
+  string::size_type index = 0;
+  string::size_type delim, end;
+  // TODO(jad): Switch to using regular expressions.
+  while((index = output.find(kVariablePreambleText, index)) != string::npos) {
+    index += kVariablePreambleText.length();
+    end = output.find('\n', index);
+    if (end == string::npos) {
+      // Should never happen but no need to LOG_FATAL.
+      LogPrintf(LOG_ERROR, "%s: Did not find terminating newline...\n",
+                filename);
+      end = output.length();
     }
-
-    string output;
-    tpl->DumpToString( filename, &output );
-
-    string::size_type index = 0;
-    string::size_type delim, end;
-
-    // TODO(jad): Switch to using regular expressions.
-    while ( ( index = output.find( kVariablePreambleText,
-                                   index ) ) != string::npos ) {
-        index += kVariablePreambleText.length();
-        end = output.find( '\n', index );
-
-        if ( end == string::npos ) {
-            // Should never happen but no need to LOG_FATAL.
-            LogPrintf( LOG_ERROR, "%s: Did not find terminating newline...\n",
-                       filename );
-            end = output.length();
-        }
-
-        string name_and_mods = output.substr( index, end - index );
-        delim = name_and_mods.find( ":" );
-
-        if ( delim == string::npos ) {      // no modifiers.
-            delim = name_and_mods.length();
-        }
-
-        VariableAndMod var_mod( name_and_mods.substr( 0, delim ),
-                                name_and_mods.substr( delim ) );
-        vars_and_mods.push_back( var_mod );
-    }
-
-    return true;
+    string name_and_mods = output.substr(index, end - index);
+    delim = name_and_mods.find(":");
+    if (delim == string::npos)          // no modifiers.
+      delim = name_and_mods.length();
+    VariableAndMod var_mod(name_and_mods.substr(0, delim),
+                           name_and_mods.substr(delim));
+    vars_and_mods.push_back(var_mod);
+  }
+  return true;
 }
 
 // Returns true if the difference in the modifier strings
 // is non-significant and can be safely omitted. This is the
 // case when one is ":j:h" and the other is ":j" since
 // the :h is a no-op after a :j.
-bool SuppressLameDiff( string modifiers_a, string modifiers_b ) {
-    if ( ( modifiers_a == ":j:h" && modifiers_b == ":j" ) ||
-            ( modifiers_a == ":j" && modifiers_b == ":j:h" ) ) {
-        return true;
-    }
-
-    return false;
+bool SuppressLameDiff(string modifiers_a, string modifiers_b) {
+  if ((modifiers_a == ":j:h" && modifiers_b == ":j") ||
+      (modifiers_a == ":j" && modifiers_b == ":j:h"))
+    return true;
+  return false;
 }
 
 // Main function to analyze differences in escaping modifiers between
@@ -244,140 +225,113 @@ bool SuppressLameDiff( string modifiers_a, string modifiers_b ) {
 // If that is not the case, we fail.
 // We return true if there were no differences, false if we failed
 // or we found one or more differences.
-bool DiffTemplates( const char* filename_a, const char* filename_b,
-                    Strip strip ) {
-    vector<VariableAndMod> vars_and_mods_a, vars_and_mods_b;
+bool DiffTemplates(const char* filename_a, const char* filename_b,
+                   Strip strip) {
+  vector<VariableAndMod> vars_and_mods_a, vars_and_mods_b;
 
-    if ( !LoadVariables( filename_a, strip, vars_and_mods_a ) ||
-            !LoadVariables( filename_b, strip, vars_and_mods_b ) ) {
-        return false;
+  if (!LoadVariables(filename_a, strip, vars_and_mods_a) ||
+      !LoadVariables(filename_b, strip, vars_and_mods_b))
+    return false;
+
+  if (vars_and_mods_a.size() != vars_and_mods_b.size())
+    LogPrintf(LOG_FATAL, "Templates differ: %s [%d vars] vs. %s [%d vars].\n",
+              filename_a, vars_and_mods_a.size(),
+              filename_b, vars_and_mods_b.size());
+
+  int mismatch_count = 0;      // How many differences there were.
+  int no_modifiers_count = 0;  // How many variables without modifiers.
+  VariableAndMods::const_iterator iter_a, iter_b;
+  for (iter_a = vars_and_mods_a.begin(), iter_b = vars_and_mods_b.begin();
+       iter_a != vars_and_mods_a.end() && iter_b != vars_and_mods_b.end();
+       ++iter_a, ++iter_b) {
+    // The templates have different variables, we fail!
+    if (iter_a->variable_name != iter_b->variable_name)
+      LogPrintf(LOG_FATAL, "Variable name mismatch: %s vs. %s\n",
+                iter_a->variable_name.c_str(),
+                iter_b->variable_name.c_str());
+    // Variables without modifiers are ignored from the diff. They simply
+    // get counted and the count is shown in verbose logging/
+    if (iter_a->modifiers == "" || iter_b->modifiers == "") {
+      no_modifiers_count++;
+    } else {
+      if (iter_a->modifiers != iter_b->modifiers &&
+          !SuppressLameDiff(iter_a->modifiers, iter_b->modifiers)) {
+        mismatch_count++;
+        LogPrintf(LOG_INFO, "Difference for variable %s -- %s vs. %s\n",
+                  iter_a->variable_name.c_str(),
+                  iter_a->modifiers.c_str(), iter_b->modifiers.c_str());
+      }
     }
+  }
 
-    if ( vars_and_mods_a.size() != vars_and_mods_b.size() )
-        LogPrintf( LOG_FATAL, "Templates differ: %s [%d vars] vs. %s [%d vars].\n",
-                   filename_a, vars_and_mods_a.size(),
-                   filename_b, vars_and_mods_b.size() );
+  LogPrintf(LOG_VERBOSE, "Variables Found: Total=%d; Diffs=%d; NoMods=%d\n",
+            vars_and_mods_a.size(), mismatch_count, no_modifiers_count);
 
-    int mismatch_count = 0;      // How many differences there were.
-    int no_modifiers_count = 0;  // How many variables without modifiers.
-    VariableAndMods::const_iterator iter_a, iter_b;
-
-    for ( iter_a = vars_and_mods_a.begin(), iter_b = vars_and_mods_b.begin();
-            iter_a != vars_and_mods_a.end() && iter_b != vars_and_mods_b.end();
-            ++iter_a, ++iter_b ) {
-        // The templates have different variables, we fail!
-        if ( iter_a->variable_name != iter_b->variable_name )
-            LogPrintf( LOG_FATAL, "Variable name mismatch: %s vs. %s\n",
-                       iter_a->variable_name.c_str(),
-                       iter_b->variable_name.c_str() );
-
-        // Variables without modifiers are ignored from the diff. They simply
-        // get counted and the count is shown in verbose logging/
-        if ( iter_a->modifiers == "" || iter_b->modifiers == "" ) {
-            no_modifiers_count++;
-        }
-        else {
-            if ( iter_a->modifiers != iter_b->modifiers &&
-                    !SuppressLameDiff( iter_a->modifiers, iter_b->modifiers ) ) {
-                mismatch_count++;
-                LogPrintf( LOG_INFO, "Difference for variable %s -- %s vs. %s\n",
-                           iter_a->variable_name.c_str(),
-                           iter_a->modifiers.c_str(), iter_b->modifiers.c_str() );
-            }
-        }
-    }
-
-    LogPrintf( LOG_VERBOSE, "Variables Found: Total=%d; Diffs=%d; NoMods=%d\n",
-               vars_and_mods_a.size(), mismatch_count, no_modifiers_count );
-
-    return ( mismatch_count == 0 );
+  return (mismatch_count == 0);
 }
 
-int main( int argc, char** argv ) {
+int main(int argc, char **argv) {
 #if defined(HAVE_GETOPT_LONG)
-    static struct option longopts[] = {
-        {"help", 0, NULL, 'h'},
-        {"strip", 1, NULL, 's'},
-        {"template_dir", 1, NULL, 't'},
-        {"verbose", 0, NULL, 'v'},
-        {"version", 0, NULL, 'V'},
-        {0, 0, 0, 0}
-    };
-    int option_index;
+  static struct option longopts[] = {
+    {"help", 0, NULL, 'h'},
+    {"strip", 1, NULL, 's'},
+    {"template_dir", 1, NULL, 't'},
+    {"verbose", 0, NULL, 'v'},
+    {"version", 0, NULL, 'V'},
+    {0, 0, 0, 0}
+  };
+  int option_index;
 # define GETOPT(argc, argv)  getopt_long(argc, argv, "t:s:hvV", \
                                          longopts, &option_index)
 #elif defined(HAVE_GETOPT_H)
 # define GETOPT(argc, argv)  getopt(argc, argv, "t:s:hvV")
 #else
-    // TODO(csilvers): implement something reasonable for windows/etc
+  // TODO(csilvers): implement something reasonable for windows/etc
 # define GETOPT(argc, argv)  -1
-    int optind = 1;    // first non-opt argument
-    const char* optarg = "";   // not used
+  int optind = 1;    // first non-opt argument
+  const char* optarg = "";   // not used
 #endif
 
-    int r = 0;
-
-    while ( r != -1 ) { // getopt()/getopt_long() return -1 upon no-more-input
-        r = GETOPT( argc, argv );
-
-        switch ( r ) {
-        case 's':
-            FLAG_strip.assign( optarg );
-            break;
-
-        case 't':
-            FLAG_template_dir.assign( optarg );
-            break;
-
-        case 'v':
-            FLAG_verbose = true;
-            break;
-
-        case 'V':
-            Version( stdout );
-            break;
-
-        case -1:
-            break;   // means 'no more input'
-
-        default:
-            Usage( argv[0], stderr );
-        }
+  int r = 0;
+  while (r != -1) {   // getopt()/getopt_long() return -1 upon no-more-input
+    r = GETOPT(argc, argv);
+    switch (r) {
+      case 's': FLAG_strip.assign(optarg); break;
+      case 't': FLAG_template_dir.assign(optarg); break;
+      case 'v': FLAG_verbose = true; break;
+      case 'V': Version(stdout); break;
+      case -1: break;   // means 'no more input'
+      default: Usage(argv[0], stderr);
     }
+  }
 
-    Template::SetTemplateRootDirectory( FLAG_template_dir );
+  Template::SetTemplateRootDirectory(FLAG_template_dir);
 
 
-    if ( argc != ( optind + 2 ) )
-        LogPrintf( LOG_FATAL,
-                   "Must specify exactly two template files on the command line.\n" );
+  if (argc != (optind + 2))
+    LogPrintf(LOG_FATAL,
+              "Must specify exactly two template files on the command line.\n");
 
-    // Validate the Strip value. Default is STRIP_WHITESPACE.
-    Strip strip = STRIP_WHITESPACE;   // To avoid compiler warnings.
+  // Validate the Strip value. Default is STRIP_WHITESPACE.
+  Strip strip = STRIP_WHITESPACE;   // To avoid compiler warnings.
+  if (FLAG_strip == "STRIP_WHITESPACE" || FLAG_strip == "")
+    strip = STRIP_WHITESPACE;
+  else if (FLAG_strip == "STRIP_BLANK_LINES")
+    strip = STRIP_BLANK_LINES;
+  else if (FLAG_strip == "DO_NOT_STRIP")
+    strip = DO_NOT_STRIP;
+  else
+    LogPrintf(LOG_FATAL, "Unrecognized Strip: %s. Must be one of: "
+              "STRIP_WHITESPACE, STRIP_BLANK_LINES or DO_NOT_STRIP\n",
+              FLAG_strip.c_str());
 
-    if ( FLAG_strip == "STRIP_WHITESPACE" || FLAG_strip == "" ) {
-        strip = STRIP_WHITESPACE;
-    }
-    else if ( FLAG_strip == "STRIP_BLANK_LINES" ) {
-        strip = STRIP_BLANK_LINES;
-    }
-    else if ( FLAG_strip == "DO_NOT_STRIP" ) {
-        strip = DO_NOT_STRIP;
-    }
-    else
-        LogPrintf( LOG_FATAL, "Unrecognized Strip: %s. Must be one of: "
-                   "STRIP_WHITESPACE, STRIP_BLANK_LINES or DO_NOT_STRIP\n",
-                   FLAG_strip.c_str() );
+  const char* filename_a = argv[optind];
+  const char* filename_b = argv[optind + 1];
+  LogPrintf(LOG_VERBOSE, "------ Diff of [%s, %s] ------\n",
+            filename_a, filename_b);
 
-    const char* filename_a = argv[optind];
-    const char* filename_b = argv[optind + 1];
-    LogPrintf( LOG_VERBOSE, "------ Diff of [%s, %s] ------\n",
-               filename_a, filename_b );
-
-    if ( DiffTemplates( filename_a, filename_b, strip ) ) {
-        return 0;
-    }
-    else {
-        return 1;
-    }
+  if (DiffTemplates(filename_a, filename_b, strip))
+    return 0;
+  else
+    return 1;
 }

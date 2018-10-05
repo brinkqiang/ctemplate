@@ -74,45 +74,42 @@ class ExpandEmitter;
 // content.  The emitter argument is never to be remembered beyond each
 // function call.
 class CTEMPLATE_DLL_DECL TemplateAnnotator {
-  public:
-    TemplateAnnotator() { }
-    virtual ~TemplateAnnotator() { }
+ public:
+  TemplateAnnotator() { }
+  virtual ~TemplateAnnotator() { }
 
-    // Called before processing a subtemplate include marker.
-    // Passed value is the include marker name.
-    virtual void EmitOpenInclude( ExpandEmitter* emitter,
-                                  const std::string& value ) = 0;
-    // Called after processing a subtemplate include marker.
-    virtual void EmitCloseInclude( ExpandEmitter* emitter ) = 0;
+  // Called before processing a subtemplate include marker.
+  // Passed value is the include marker name.
+  virtual void EmitOpenInclude(ExpandEmitter* emitter, const std::string& value) = 0;
+  // Called after processing a subtemplate include marker.
+  virtual void EmitCloseInclude(ExpandEmitter* emitter) = 0;
 
-    // Called before opening a template or subtemplate file for processing.
-    // Passed value is the filename.
-    virtual void EmitOpenFile( ExpandEmitter* emitter,
-                               const std::string& value ) = 0;
-    // Called after processing a template or subtemplate file.
-    virtual void EmitCloseFile( ExpandEmitter* emitter ) = 0;
+  // Called before opening a template or subtemplate file for processing.
+  // Passed value is the filename.
+  virtual void EmitOpenFile(ExpandEmitter* emitter, const std::string& value) = 0;
+  // Called after processing a template or subtemplate file.
+  virtual void EmitCloseFile(ExpandEmitter* emitter) = 0;
 
-    // Called before processing a section.
-    // Passed value is the section name.
-    virtual void EmitOpenSection( ExpandEmitter* emitter,
-                                  const std::string& value ) = 0;
-    // Called after processing a section.
-    virtual void EmitCloseSection( ExpandEmitter* emitter ) = 0;
+  // Called before processing a section.
+  // Passed value is the section name.
+  virtual void EmitOpenSection(ExpandEmitter* emitter, const std::string& value) = 0;
+  // Called after processing a section.
+  virtual void EmitCloseSection(ExpandEmitter* emitter) = 0;
 
-    // Called before processing a variable marker.
-    // Passed value is the variable name.
-    virtual void EmitOpenVariable( ExpandEmitter* emitter,
-                                   const std::string& value ) = 0;
-    // Called after processing a variable marker.
-    virtual void EmitCloseVariable( ExpandEmitter* emitter ) = 0;
+  // Called before processing a variable marker.
+  // Passed value is the variable name.
+  virtual void EmitOpenVariable(ExpandEmitter* emitter,
+                                const std::string& value) = 0;
+  // Called after processing a variable marker.
+  virtual void EmitCloseVariable(ExpandEmitter* emitter) = 0;
 
-    virtual void EmitFileIsMissing( ExpandEmitter* emitter,
-                                    const std::string& value ) = 0;
+  virtual void EmitFileIsMissing(ExpandEmitter* emitter,
+                                 const std::string& value) = 0;
 
-  private:
-    // Can't invoke copy constructor or assignment operator
-    TemplateAnnotator( const TemplateAnnotator& );
-    void operator=( const TemplateAnnotator& );
+ private:
+  // Can't invoke copy constructor or assignment operator
+  TemplateAnnotator(const TemplateAnnotator&);
+  void operator=(const TemplateAnnotator&);
 };
 
 // This is a concrete template annotator class that inserts annotations
@@ -120,26 +117,23 @@ class CTEMPLATE_DLL_DECL TemplateAnnotator {
 // the default annotation implementation when annotation is turned on
 // by PerExpandData and no annotator type is specified.
 class CTEMPLATE_DLL_DECL TextTemplateAnnotator : public TemplateAnnotator {
-  public:
-    TextTemplateAnnotator() { }
-    virtual void EmitOpenInclude( ExpandEmitter* emitter,
-                                  const std::string& value );
-    virtual void EmitCloseInclude( ExpandEmitter* emitter );
-    virtual void EmitOpenFile( ExpandEmitter* emitter, const std::string& value );
-    virtual void EmitCloseFile( ExpandEmitter* emitter );
-    virtual void EmitOpenSection( ExpandEmitter* emitter,
-                                  const std::string& value );
-    virtual void EmitCloseSection( ExpandEmitter* emitter );
-    virtual void EmitOpenVariable( ExpandEmitter* emitter,
-                                   const std::string& value );
-    virtual void EmitCloseVariable( ExpandEmitter* emitter );
-    virtual void EmitFileIsMissing( ExpandEmitter* emitter,
-                                    const std::string& value );
+ public:
+  TextTemplateAnnotator() { }
+  virtual void EmitOpenInclude(ExpandEmitter* emitter, const std::string& value);
+  virtual void EmitCloseInclude(ExpandEmitter* emitter);
+  virtual void EmitOpenFile(ExpandEmitter* emitter, const std::string& value);
+  virtual void EmitCloseFile(ExpandEmitter* emitter);
+  virtual void EmitOpenSection(ExpandEmitter* emitter, const std::string& value);
+  virtual void EmitCloseSection(ExpandEmitter* emitter);
+  virtual void EmitOpenVariable(ExpandEmitter* emitter, const std::string& value);
+  virtual void EmitCloseVariable(ExpandEmitter* emitter);
+  virtual void EmitFileIsMissing(ExpandEmitter* emitter,
+                                 const std::string& value);
 
-  private:
-    // Can't invoke copy constructor or assignment operator
-    TextTemplateAnnotator( const TextTemplateAnnotator& );
-    void operator=( const TextTemplateAnnotator& );
+ private:
+  // Can't invoke copy constructor or assignment operator
+  TextTemplateAnnotator(const TextTemplateAnnotator&);
+  void operator=(const TextTemplateAnnotator&);
 };
 
 }

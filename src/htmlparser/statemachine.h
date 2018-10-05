@@ -52,8 +52,8 @@ enum {
 
 struct statemachine_ctx_s;
 
-typedef void( *state_event_function )( struct statemachine_ctx_s*, int, char,
-                                       int );
+typedef void(*state_event_function)(struct statemachine_ctx_s *, int, char,
+                                    int);
 
 typedef struct statemachine_definition_s {
     int num_states;
@@ -63,15 +63,15 @@ typedef struct statemachine_definition_s {
      * This field is optional and if not in use it should be set to NULL.
      */
     const char* const* state_names;
-    state_event_function* in_state_events;
-    state_event_function* enter_state_events;
-    state_event_function* exit_state_events;
+    state_event_function *in_state_events;
+    state_event_function *enter_state_events;
+    state_event_function *exit_state_events;
 } statemachine_definition;
 
 typedef struct statemachine_ctx_s {
     int current_state;
     int next_state;
-    statemachine_definition* definition;
+    statemachine_definition *definition;
     char current_char;
 
     /* Current line number. */
@@ -91,7 +91,7 @@ typedef struct statemachine_ctx_s {
     char error_msg[STATEMACHINE_MAX_STR_ERROR];
 
     /* Storage space for the layer above. */
-    void* user;
+    void *user;
 } statemachine_ctx;
 
 /* Populates the statemachine definition.
@@ -109,53 +109,53 @@ typedef struct statemachine_ctx_s {
  * human readable state names. These strings are used when reporting error
  * messages.
  */
-void statemachine_definition_populate( statemachine_definition* def,
-                                       const int* const* transition_table,
-                                       const char* const* state_names );
+void statemachine_definition_populate(statemachine_definition *def,
+                                     const int* const* transition_table,
+                                     const char* const* state_names);
 
-void statemachine_in_state( statemachine_definition* def, int st,
-                            state_event_function func );
-void statemachine_enter_state( statemachine_definition* def, int st,
-                               state_event_function func );
-void statemachine_exit_state( statemachine_definition* def, int st,
-                              state_event_function func );
+void statemachine_in_state(statemachine_definition *def, int st,
+                           state_event_function func);
+void statemachine_enter_state(statemachine_definition *def, int st,
+                                     state_event_function func);
+void statemachine_exit_state(statemachine_definition *def, int st,
+                                    state_event_function func);
 
-statemachine_definition* statemachine_definition_new( int states );
-void statemachine_definition_delete( statemachine_definition* def );
+statemachine_definition *statemachine_definition_new(int states);
+void statemachine_definition_delete(statemachine_definition *def);
 
-int statemachine_get_state( statemachine_ctx* ctx );
-void statemachine_set_state( statemachine_ctx* ctx, int state );
+int statemachine_get_state(statemachine_ctx *ctx);
+void statemachine_set_state(statemachine_ctx *ctx, int state);
 
-void statemachine_start_record( statemachine_ctx* ctx );
-const char* statemachine_stop_record( statemachine_ctx* ctx );
-const char* statemachine_record_buffer( statemachine_ctx* ctx );
+void statemachine_start_record(statemachine_ctx *ctx);
+const char *statemachine_stop_record(statemachine_ctx *ctx);
+const char *statemachine_record_buffer(statemachine_ctx *ctx);
 
 /* Returns the the number of characters currently stored in the record buffer.
  */
-static inline size_t statemachine_record_length( statemachine_ctx* ctx ) {
-    return ctx->record_pos + 1;
+static inline size_t statemachine_record_length(statemachine_ctx *ctx) {
+  return ctx->record_pos + 1;
 }
 
 /* Return the current line number. */
-static inline int statemachine_get_line_number( statemachine_ctx* ctx ) {
-    return ctx->line_number;
+static inline int statemachine_get_line_number(statemachine_ctx *ctx) {
+  return ctx->line_number;
 }
 
 /* Set the current line number. */
-static inline void statemachine_set_line_number( statemachine_ctx* ctx,
-        int line ) {
-    ctx->line_number = line;
+static inline void statemachine_set_line_number(statemachine_ctx *ctx,
+                                                int line) {
+  ctx->line_number = line;
 }
 
 /* Return the current column number. */
-static inline int statemachine_get_column_number( statemachine_ctx* ctx ) {
-    return ctx->column_number;
+static inline int statemachine_get_column_number(statemachine_ctx *ctx) {
+  return ctx->column_number;
 }
 
 /* Set the current column number. */
-static inline void statemachine_set_column_number( statemachine_ctx* ctx,
-        int column ) {
-    ctx->column_number = column;
+static inline void statemachine_set_column_number(statemachine_ctx *ctx,
+                                                  int column) {
+  ctx->column_number = column;
 }
 
 
@@ -163,13 +163,12 @@ static inline void statemachine_set_column_number( statemachine_ctx* ctx,
  *
  * NULL is returned if the parser didn't encounter an error.
  */
-static inline const char* statemachine_get_error_msg( statemachine_ctx* ctx ) {
-    if ( ctx->next_state == STATEMACHINE_ERROR ) {
-        return ctx->error_msg;
-    }
-    else {
-        return NULL;
-    }
+static inline const char *statemachine_get_error_msg(statemachine_ctx *ctx) {
+  if (ctx->next_state == STATEMACHINE_ERROR) {
+    return ctx->error_msg;
+  } else {
+    return NULL;
+  }
 }
 
 /* Reset the statemachine.
@@ -178,7 +177,7 @@ static inline const char* statemachine_get_error_msg( statemachine_ctx* ctx ) {
  * state to the default state (0), stopping recording and setting the line
  * number to 1.
  */
-void statemachine_reset( statemachine_ctx* ctx );
+void statemachine_reset(statemachine_ctx *ctx);
 
 /* Initializes a new statemachine. Receives a statemachine definition object
  * that should have been initialized with statemachine_definition_new() and a
@@ -189,30 +188,30 @@ void statemachine_reset( statemachine_ctx* ctx );
  * Initialization failure is fatal, and if this function fails it may not
  * deallocate all previsouly allocated memory.
  */
-statemachine_ctx* statemachine_new( statemachine_definition* def,
-                                    void* user );
+statemachine_ctx *statemachine_new(statemachine_definition *def,
+                                   void *user);
 
 /* Returns a pointer to a context which is a duplicate of the statemachine src.
  * The statemachine definition and the user pointer have to be provided since
  * these references are not owned by the statemachine itself.
  */
-statemachine_ctx* statemachine_duplicate( statemachine_ctx* ctx,
-        statemachine_definition* def,
-        void* user );
+statemachine_ctx *statemachine_duplicate(statemachine_ctx *ctx,
+                                         statemachine_definition *def,
+                                         void *user);
 
 /* Copies the context of the statemachine pointed to by src to the statemachine
  * provided by dst.
  * The statemachine definition and the user pointer have to be provided since
  * these references are not owned by the statemachine itself.
  */
-void statemachine_copy( statemachine_ctx* dst,
-                        statemachine_ctx* src,
-                        statemachine_definition* def,
-                        void* user );
+void statemachine_copy(statemachine_ctx *dst,
+                       statemachine_ctx *src,
+                       statemachine_definition *def,
+                       void *user);
 
-int statemachine_parse( statemachine_ctx* ctx, const char* str, int size );
+int statemachine_parse(statemachine_ctx *ctx, const char *str, int size);
 
-void statemachine_delete( statemachine_ctx* ctx );
+void statemachine_delete(statemachine_ctx *ctx);
 
 
 /*****
@@ -225,7 +224,7 @@ void statemachine_delete( statemachine_ctx* ctx );
  * Encode the character chr into the string output. Writes at most len
  * characters to the output string but makes sure output is NULL terminated.
  */
-void statemachine_encode_char( char chr, char* output, size_t len );
+void statemachine_encode_char(char chr, char *output, size_t len);
 
 
 #ifdef __cplusplus

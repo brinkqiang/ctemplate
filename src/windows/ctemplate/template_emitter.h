@@ -50,32 +50,24 @@
 namespace ctemplate {
 
 class CTEMPLATE_DLL_DECL ExpandEmitter {
-  public:
-    ExpandEmitter() {}
-    virtual ~ExpandEmitter() {}
-    virtual void Emit( char c ) = 0;
-    virtual void Emit( const std::string& s ) = 0;
-    virtual void Emit( const char* s ) = 0;
-    virtual void Emit( const char* s, size_t slen ) = 0;
+ public:
+  ExpandEmitter() {}
+  virtual ~ExpandEmitter() {}
+  virtual void Emit(char c) = 0;
+  virtual void Emit(const std::string& s) = 0;
+  virtual void Emit(const char* s) = 0;
+  virtual void Emit(const char* s, size_t slen) = 0;
 };
 
 
 class CTEMPLATE_DLL_DECL StringEmitter : public ExpandEmitter {
-    std::string* const outbuf_;
-  public:
-    StringEmitter( std::string* outbuf ) : outbuf_( outbuf ) {}
-    virtual void Emit( char c ) {
-        *outbuf_ += c;
-    }
-    virtual void Emit( const std::string& s ) {
-        *outbuf_ += s;
-    }
-    virtual void Emit( const char* s ) {
-        *outbuf_ += s;
-    }
-    virtual void Emit( const char* s, size_t slen ) {
-        outbuf_->append( s, slen );
-    }
+  std::string* const outbuf_;
+ public:
+  StringEmitter(std::string* outbuf) : outbuf_(outbuf) {}
+  virtual void Emit(char c) { *outbuf_ += c; }
+  virtual void Emit(const std::string& s) { *outbuf_ += s; }
+  virtual void Emit(const char* s) { *outbuf_ += s; }
+  virtual void Emit(const char* s, size_t slen) { outbuf_->append(s, slen); }
 };
 
 }

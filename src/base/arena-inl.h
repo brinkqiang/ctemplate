@@ -72,78 +72,68 @@ namespace ctemplate {
 // T is the type we want to allocate, and C is the type of the arena.
 // ArenaAllocator has the thread-safety characteristics of C.
 template <class T, class C> class ArenaAllocator {
-  public:
-    typedef T value_type;
-    typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
+ public:
+  typedef T value_type;
+  typedef size_t size_type;
+  typedef ptrdiff_t difference_type;
 
-    typedef T* pointer;
-    typedef const T* const_pointer;
-    typedef T& reference;
-    typedef const T& const_reference;
-    pointer address( reference r ) const {
-        return &r;
-    }
-    const_pointer address( const_reference r ) const {
-        return &r;
-    }
-    size_type max_size() const {
-        return size_t( -1 ) / sizeof( T );
-    }
+  typedef T* pointer;
+  typedef const T* const_pointer;
+  typedef T& reference;
+  typedef const T& const_reference;
+  pointer address(reference r) const  { return &r; }
+  const_pointer address(const_reference r) const  { return &r; }
+  size_type max_size() const  { return size_t(-1) / sizeof(T); }
 
-    // DO NOT USE! The default constructor is for gcc3 compatibility only.
-    ArenaAllocator() : arena_( 0 ) { }
-    // This is not an explicit constructor!  So you can pass in an arena*
-    // to functions needing an ArenaAllocator (like the astring constructor)
-    // and everything will work ok.
-    ArenaAllocator( C* arena ) : arena_( arena ) { } // NOLINT
-    ~ArenaAllocator() { }
+  // DO NOT USE! The default constructor is for gcc3 compatibility only.
+  ArenaAllocator() : arena_(0) { }
+  // This is not an explicit constructor!  So you can pass in an arena*
+  // to functions needing an ArenaAllocator (like the astring constructor)
+  // and everything will work ok.
+  ArenaAllocator(C* arena) : arena_(arena) { }  // NOLINT
+  ~ArenaAllocator() { }
 
-    pointer allocate( size_type n,
-                      std::allocator<void>::const_pointer /*hint*/ = 0 ) {
-        assert( arena_ && "No arena to allocate from!" );
-        return reinterpret_cast<T*>( arena_->AllocAligned( n * sizeof( T ),
-                                     kAlignment ) );
-    }
-    void deallocate( pointer p, size_type n ) {
-        arena_->Free( p, n * sizeof( T ) );
-    }
-    void construct( pointer p, const T& val ) {
-        new ( reinterpret_cast<void*>( p ) ) T( val );
-    }
-    void construct( pointer p ) {
-        new ( reinterpret_cast<void*>( p ) ) T();
-    }
-    void destroy( pointer p ) {
-        p->~T();
-    }
+  pointer allocate(size_type n,
+                   std::allocator<void>::const_pointer /*hint*/ = 0) {
+    assert(arena_ && "No arena to allocate from!");
+    return reinterpret_cast<T*>(arena_->AllocAligned(n * sizeof(T),
+                                                     kAlignment));
+  }
+  void deallocate(pointer p, size_type n) {
+    arena_->Free(p, n * sizeof(T));
+  }
+  void construct(pointer p, const T & val) {
+    new(reinterpret_cast<void*>(p)) T(val);
+  }
+  void construct(pointer p) {
+    new(reinterpret_cast<void*>(p)) T();
+  }
+  void destroy(pointer p) { p->~T(); }
 
-    C* arena( void ) const {
-        return arena_;
-    }
+  C* arena(void) const { return arena_; }
 
-    template<class U> struct rebind {
-        typedef ArenaAllocator<U, C> other;
-    };
+  template<class U> struct rebind {
+    typedef ArenaAllocator<U, C> other;
+  };
 
-    template<class U> ArenaAllocator( const ArenaAllocator<U, C>& other )
-        : arena_( other.arena() ) { }
+  template<class U> ArenaAllocator(const ArenaAllocator<U, C>& other)
+    : arena_(other.arena()) { }
 
-    template<class U> bool operator==( const ArenaAllocator<U, C>& other ) const {
-        return arena_ == other.arena();
-    }
+  template<class U> bool operator==(const ArenaAllocator<U, C>& other) const {
+    return arena_ == other.arena();
+  }
 
-    template<class U> bool operator!=( const ArenaAllocator<U, C>& other ) const {
-        return arena_ != other.arena();
-    }
+  template<class U> bool operator!=(const ArenaAllocator<U, C>& other) const {
+    return arena_ != other.arena();
+  }
 
-  protected:
-    static const int kAlignment;
-    C* arena_;
+ protected:
+  static const int kAlignment;
+  C* arena_;
 };
 
 template<class T, class C> const int ArenaAllocator<T, C>::kAlignment =
-    ( 1 == sizeof( T ) ? 1 : BaseArena::kDefaultAlignment );
+    (1 == sizeof(T) ? 1 : BaseArena::kDefaultAlignment);
 
 
 // 'new' must be in the global namespace.
@@ -158,16 +148,16 @@ using ctemplate::UnsafeArena;
 // STL containers, etc.
 enum AllocateInArenaType { AllocateInArena };
 
-inline void* operator new ( size_t size,
-                            AllocateInArenaType /* unused */,
-                            UnsafeArena* arena ) {
-    return arena->Alloc( size );
+inline void* operator new(size_t size,
+                          AllocateInArenaType /* unused */,
+                          UnsafeArena *arena) {
+  return arena->Alloc(size);
 }
 
-inline void* operator new[]( size_t size,
+inline void* operator new[](size_t size,
                              AllocateInArenaType /* unused */,
-                             UnsafeArena* arena ) {
-    return arena->Alloc( size );
+                             UnsafeArena *arena) {
+  return arena->Alloc(size);
 }
 
 namespace ctemplate {
@@ -204,58 +194,55 @@ namespace ctemplate {
 // even though it implements operator new/delete.
 
 class Gladiator {
-  public:
-    Gladiator() { }
-    virtual ~Gladiator() { }
+ public:
+  Gladiator() { }
+  virtual ~Gladiator() { }
 
-    // We do not override the array allocators, so array allocation and
-    // deallocation will always be from the heap.  Typically, arrays are
-    // larger, and thus the costs of arena allocation are higher and the
-    // benefits smaller.  Since arrays are typically allocated and deallocated
-    // very differently from scalars, this may not interfere too much with
-    // the arena concept.  If it does pose a problem, flesh out the
-    // ArrayGladiator class below.
+  // We do not override the array allocators, so array allocation and
+  // deallocation will always be from the heap.  Typically, arrays are
+  // larger, and thus the costs of arena allocation are higher and the
+  // benefits smaller.  Since arrays are typically allocated and deallocated
+  // very differently from scalars, this may not interfere too much with
+  // the arena concept.  If it does pose a problem, flesh out the
+  // ArrayGladiator class below.
 
-    void* operator new ( size_t size ) {
-        void* ret = ::operator new ( 1 + size );
-        static_cast<char*>( ret )[size] = 1;    // mark as heap-allocated
-        return ret;
+  void* operator new(size_t size) {
+    void* ret = ::operator new(1 + size);
+    static_cast<char *>(ret)[size] = 1;     // mark as heap-allocated
+    return ret;
+  }
+  // the ignored parameter keeps us from stepping on placement new
+  template<class T> void* operator new(size_t size, const int ignored,
+                                       T* allocator) {
+    if (allocator) {
+      void* ret = allocator->AllocAligned(1 + size,
+                                          BaseArena::kDefaultAlignment);
+      static_cast<char*>(ret)[size] = 0;  // mark as arena-allocated
+      return ret;
+    } else {
+      return operator new(size);          // this is the function above
     }
-    // the ignored parameter keeps us from stepping on placement new
-    template<class T> void* operator new ( size_t size, const int ignored,
-                                           T* allocator ) {
-        if ( allocator ) {
-            void* ret = allocator->AllocAligned( 1 + size,
-                                                 BaseArena::kDefaultAlignment );
-            static_cast<char*>( ret )[size] = 0; // mark as arena-allocated
-            return ret;
-        }
-        else {
-            return operator new ( size );       // this is the function above
-        }
+  }
+  void operator delete(void* memory, size_t size) {
+    if (static_cast<char*>(memory)[size]) {
+      assert (1 == static_cast<char *>(memory)[size]);
+      ::operator delete(memory);
+    } else {
+      // We never call the allocator's Free method.  If we need to do
+      // that someday, we can store a pointer to the arena instead of
+      // the Boolean marker flag.
     }
-    void operator delete ( void* memory, size_t size ) {
-        if ( static_cast<char*>( memory )[size] ) {
-            assert( 1 == static_cast<char*>( memory )[size] );
-            ::operator delete ( memory );
-        }
-        else {
-            // We never call the allocator's Free method.  If we need to do
-            // that someday, we can store a pointer to the arena instead of
-            // the Boolean marker flag.
-        }
+  }
+  template<class T> void operator delete(void* memory, size_t size,
+                                         const int ign, T* allocator) {
+    // This "placement delete" can only be called if the constructor
+    // throws an exception.
+    if (allocator) {
+      allocator->Free(memory, 1 + size);
+    } else {
+      ::operator delete(memory);
     }
-    template<class T> void operator delete ( void* memory, size_t size,
-            const int ign, T* allocator ) {
-        // This "placement delete" can only be called if the constructor
-        // throws an exception.
-        if ( allocator ) {
-            allocator->Free( memory, 1 + size );
-        }
-        else {
-            ::operator delete ( memory );
-        }
-    }
+  }
 };
 
 // This avoids the space overhead of Gladiator if you just want to
@@ -263,39 +250,39 @@ class Gladiator {
 // problems that can occur when overriding new and delete.
 
 class ArenaOnlyGladiator {
-  public:
-    ArenaOnlyGladiator() { }
-    // No virtual destructor is needed because we ignore the size
-    // parameter in all the delete functions.
-    // virtual ~ArenaOnlyGladiator() { }
+ public:
+  ArenaOnlyGladiator() { }
+  // No virtual destructor is needed because we ignore the size
+  // parameter in all the delete functions.
+  // virtual ~ArenaOnlyGladiator() { }
 
-    // can't just return NULL here -- compiler gives a warning. :-|
-    void* operator new ( size_t /*size*/ ) {
-        assert( 0 );
-        return reinterpret_cast<void*>( 1 );
-    }
-    void* operator new[]( size_t /*size*/ ) {
-        assert( 0 );
-        return reinterpret_cast<void*>( 1 );
-    }
+  // can't just return NULL here -- compiler gives a warning. :-|
+  void* operator new(size_t /*size*/) {
+    assert(0);
+    return reinterpret_cast<void *>(1);
+  }
+  void* operator new[](size_t /*size*/) {
+    assert(0);
+    return reinterpret_cast<void *>(1);
+  }
 
-    // the ignored parameter keeps us from stepping on placement new
-    template<class T> void* operator new ( size_t size, const int ignored,
-                                           T* allocator ) {
-        assert( allocator );
-        return allocator->AllocAligned( size, BaseArena::kDefaultAlignment );
-    }
-    template<class T> void* operator new[]( size_t size,
-                                            const int ignored, T* allocator ) {
-        assert( allocator );
-        return allocator->AllocAligned( size, BaseArena::kDefaultAlignment );
-    }
-    void operator delete ( void* /*memory*/, size_t /*size*/ ) { }
-    template<class T> void operator delete ( void* memory, size_t size,
-            const int ign, T* allocator ) { }
-    void operator delete []( void* /*memory*/ ) { }
-    template<class T> void operator delete ( void* memory,
-            const int ign, T* allocator ) { }
+  // the ignored parameter keeps us from stepping on placement new
+  template<class T> void* operator new(size_t size, const int ignored,
+                                       T* allocator) {
+    assert(allocator);
+    return allocator->AllocAligned(size, BaseArena::kDefaultAlignment);
+  }
+  template<class T> void* operator new[](size_t size,
+                                         const int ignored, T* allocator) {
+    assert(allocator);
+    return allocator->AllocAligned (size, BaseArena::kDefaultAlignment);
+  }
+  void operator delete(void* /*memory*/, size_t /*size*/) { }
+  template<class T> void operator delete(void* memory, size_t size,
+                                         const int ign, T* allocator) { }
+  void operator delete [](void* /*memory*/) { }
+  template<class T> void operator delete(void* memory,
+                                         const int ign, T* allocator) { }
 };
 
 #if 0  // ********** for example purposes only; 100% untested.
@@ -306,60 +293,55 @@ class ArenaOnlyGladiator {
 // the length of th space itself.
 
 class ArrayGladiator : public Gladiator {
-  public:
-    void* operator new[]( size_t size ) {
-        const int sizeplus = size + kHeaderSize;
-        void* const ret = ::operator new ( sizeplus );
-        *static_cast<Arena**>( ret ) = NULL; // mark as heap-allocated
-        *static_cast<size_t*>( ret + sizeof( Arena* ) ) = sizeplus;
-        return ret + kHeaderSize;
+ public:
+  void * operator new[] (size_t size) {
+    const int sizeplus = size + kHeaderSize;
+    void * const ret = ::operator new(sizeplus);
+    *static_cast<Arena **>(ret) = NULL;  // mark as heap-allocated
+    *static_cast<size_t *>(ret + sizeof(Arena *)) = sizeplus;
+    return ret + kHeaderSize;
+  }
+  // the ignored parameter keeps us from stepping on placement new
+  template<class T> void * operator new[] (size_t size,
+                                           const int ignored, T * allocator) {
+    if (allocator) {
+      const int sizeplus = size + kHeaderSize;
+      void * const ret =
+          allocator->AllocAligned(sizeplus, BaseArena::kDefaultAlignment);
+      *static_cast<Arena **>(ret) = allocator->arena();
+      *static_cast<size_t *>(ret + sizeof(Arena *)) = sizeplus;
+      return ret + kHeaderSize;
+    } else {
+      return operator new[](size);  // this is the function above
     }
-    // the ignored parameter keeps us from stepping on placement new
-    template<class T> void* operator new[]( size_t size,
-                                            const int ignored, T* allocator ) {
-        if ( allocator ) {
-            const int sizeplus = size + kHeaderSize;
-            void* const ret =
-                allocator->AllocAligned( sizeplus, BaseArena::kDefaultAlignment );
-            *static_cast<Arena**>( ret ) = allocator->arena();
-            *static_cast<size_t*>( ret + sizeof( Arena* ) ) = sizeplus;
-            return ret + kHeaderSize;
-        }
-        else {
-            return operator new[]( size ); // this is the function above
-        }
+  }
+  void operator delete [] (void * memory) {
+    memory -= kHeaderSize;
+    Arena * const arena = *static_cast<Arena **>(memory);
+    size_t sizeplus = *static_cast<size_t *>(memory + sizeof(arena));
+    if (arena) {
+      arena->SlowFree(memory, sizeplus);
+    } else {
+      ::operator delete (memory);
     }
-    void operator delete []( void* memory ) {
-        memory -= kHeaderSize;
-        Arena* const arena = *static_cast<Arena**>( memory );
-        size_t sizeplus = *static_cast<size_t*>( memory + sizeof( arena ) );
+  }
+  template<class T> void * operator delete (void * memory,
+                                            const int ign, T * allocator) {
+    // This "placement delete" can only be called if the constructor
+    // throws an exception.
+    memory -= kHeaderSize;
+    size_t sizeplus = *static_cast<size_t *>(memory + sizeof(Arena *));
+    if (allocator) {
+      allocator->Free(memory, 1 + size);
+    } else {
+      operator delete (memory);
+    }
+  }
 
-        if ( arena ) {
-            arena->SlowFree( memory, sizeplus );
-        }
-        else {
-            ::operator delete ( memory );
-        }
-    }
-    template<class T> void* operator delete ( void* memory,
-            const int ign, T* allocator ) {
-        // This "placement delete" can only be called if the constructor
-        // throws an exception.
-        memory -= kHeaderSize;
-        size_t sizeplus = *static_cast<size_t*>( memory + sizeof( Arena* ) );
-
-        if ( allocator ) {
-            allocator->Free( memory, 1 + size );
-        }
-        else {
-            operator delete ( memory );
-        }
-    }
-
-  protected:
-    static const int kMinSize = sizeof size_t + sizeof( Arena* );
-    static const int kHeaderSize = kMinSize > BaseArena::kDefaultAlignment ?
-                                   2 * BaseArena::kDefaultAlignment : BaseArena::kDefaultAlignment;
+ protected:
+  static const int kMinSize = sizeof size_t + sizeof(Arena *);
+  static const int kHeaderSize = kMinSize > BaseArena::kDefaultAlignment ?
+    2 * BaseArena::kDefaultAlignment : BaseArena::kDefaultAlignment;
 };
 
 #endif  // ********** example

@@ -39,8 +39,7 @@ namespace ctemplate {
 
 // Enums for GetTemplate flag values
 enum Strip { DO_NOT_STRIP, STRIP_BLANK_LINES, STRIP_WHITESPACE,
-             NUM_STRIPS
-           };   // sentinel value
+             NUM_STRIPS };   // sentinel value
 
 }
 

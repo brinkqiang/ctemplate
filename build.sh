@@ -6,13 +6,15 @@
 #
 
 # - clone code
-# git clone https://github.com/brinkqiang/dmtemplate.git
-# pushd dmtemplate
+# git clone https://github.com/brinkqiang/ctemplate.git
+# pushd ctemplate
 # git submodule update --init --recursive
 #
 
-libtoolize && aclocal && autoheader && autoconf && automake --add-missing
-sh configure
+# pushd depends_path
+# libtoolize && aclocal && autoheader && autoconf && automake --add-missing
+# sh configure
+# popd
 
 rm -rf build
 mkdir build
@@ -20,3 +22,4 @@ pushd build
 cmake -DCMAKE_BUILD_TYPE=relwithdebinfo ..
 make -j1
 popd
+# popd

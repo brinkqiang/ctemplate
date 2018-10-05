@@ -50,20 +50,19 @@ extern CTEMPLATE_DLL_DECL
 const char kRootdir[];   // a string that's equivalent to "/"
 
 extern CTEMPLATE_DLL_DECL
-std::string PathJoin( const std::string& a, const std::string& b );
+std::string PathJoin(const std::string& a, const std::string& b);
 
 extern CTEMPLATE_DLL_DECL
-bool IsAbspath( const std::string& path );
+bool IsAbspath(const std::string& path);
 
 extern CTEMPLATE_DLL_DECL
-bool IsDirectory( const std::string& path );       // checks if path ends with /
+bool IsDirectory(const std::string& path);         // checks if path ends with /
 
 extern CTEMPLATE_DLL_DECL
-void NormalizeDirectory( std::string* dir );       // adds trailing / if needed
+void NormalizeDirectory(std::string* dir);         // adds trailing / if needed
 
 extern CTEMPLATE_DLL_DECL
-std::string Basename( const std::string&
-                      path );        // everything after last /
+std::string Basename(const std::string& path);          // everything after last /
 
 // Returns true iff text contains the word as a full word, i.e. delimited by one
 // of [.,_-#*?:] on both the sides.
@@ -72,7 +71,7 @@ std::string Basename( const std::string&
 // NOTE: This assumes that the word doesn't contain any of the delimiter
 // characters.
 extern CTEMPLATE_DLL_DECL
-bool ContainsFullWord( const std::string& text, const std::string& word );
+bool ContainsFullWord(const std::string& text, const std::string& word);
 
 }
 

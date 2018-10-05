@@ -89,243 +89,221 @@ namespace ctemplate {
 static char* g_tmpdir = NULL;
 
 #ifndef USING_PORT_CC  /* windows defines its own version in windows/port.cc */
-void CreateOrCleanTestDir( const string& dirname ) {
-    DIR* dir = opendir( dirname.c_str() );
-
-    if ( !dir ) { // directory doesn't exist or something like that
-        mkdir( dirname.c_str(), 0755 ); // make the dir if we can
-        return;
-    }
-
-    while ( struct dirent* d = readdir( dir ) ) {
-        if ( strstr( d->d_name, "template" ) ) {
-            unlink( PathJoin( dirname, d->d_name ).c_str() );
-        }
-    }
-
-    closedir( dir );
+void CreateOrCleanTestDir(const string& dirname) {
+  DIR* dir = opendir(dirname.c_str());
+  if (!dir) {   // directory doesn't exist or something like that
+    mkdir(dirname.c_str(), 0755);   // make the dir if we can
+    return;
+  }
+  while (struct dirent* d = readdir(dir)) {
+    if (strstr(d->d_name, "template"))
+      unlink(PathJoin(dirname, d->d_name).c_str());
+  }
+  closedir(dir);
 }
 
-static string TmpFile( const char* basename ) {
-    return string( "/tmp/" ) + basename;
+static string TmpFile(const char* basename) {
+  return string("/tmp/") + basename;
 }
 
 #endif  // #ifndef USING_PORT_CC
 
-void CreateOrCleanTestDirAndSetAsTmpdir( const string& dirname ) {
-    CreateOrCleanTestDir( dirname );
-    delete[] g_tmpdir;
-    g_tmpdir = new char[dirname.length() + 1];
-    strcpy( g_tmpdir, dirname.c_str() );
+void CreateOrCleanTestDirAndSetAsTmpdir(const string& dirname) {
+  CreateOrCleanTestDir(dirname);
+  delete[] g_tmpdir;
+  g_tmpdir = new char[dirname.length() + 1];
+  strcpy(g_tmpdir, dirname.c_str());
 }
 
-const string FLAGS_test_tmpdir( TmpFile( "template_unittest_dir" ) );
+const string FLAGS_test_tmpdir(TmpFile("template_unittest_dir"));
 
 // This writes s to the given file.  We want to make sure that every
 // time we create a file, it has a different mtime (just like would
 // be the case in real life), so we use a mock clock.
-static Mutex g_time_mutex( base::LINKER_INITIALIZED );
+static Mutex g_time_mutex(base::LINKER_INITIALIZED);
 static time_t mock_time = 946713600;   // jan 1, 2000, in california
 
-void StringToFile( const string& s, const string& filename ) {
-    FILE* fp = fopen( filename.c_str(), "wb" );
-    ASSERT( fp );
-    size_t r = fwrite( s.data(), 1, s.length(), fp );
-    ASSERT( r == s.length() );
-    fclose( fp );
+void StringToFile(const string& s, const string& filename) {
+  FILE* fp = fopen(filename.c_str(), "wb");
+  ASSERT(fp);
+  size_t r = fwrite(s.data(), 1, s.length(), fp);
+  ASSERT(r == s.length());
+  fclose(fp);
 
-    g_time_mutex.Lock();
-    const time_t file_time = mock_time++;
-    g_time_mutex.Unlock();
-    struct utimbuf timbuf = { file_time, file_time };
-    utime( filename.c_str(), &timbuf );
+  g_time_mutex.Lock();
+  const time_t file_time = mock_time++;
+  g_time_mutex.Unlock();
+  struct utimbuf timbuf = { file_time, file_time };
+  utime(filename.c_str(), &timbuf);
 }
 
 time_t Now() {
-    g_time_mutex.Lock();
-    const time_t now = mock_time;
-    g_time_mutex.Unlock();
-    return now;
+  g_time_mutex.Lock();
+  const time_t now = mock_time;
+  g_time_mutex.Unlock();
+  return now;
 }
 
 // This writes s to a file and returns the filename.
-string StringToTemplateFile( const string& s ) {
-    static int filenum = 0;
-    char buf[16];
-    snprintf( buf, sizeof( buf ), "%03d", ++filenum );
-    string filename = PathJoin( g_tmpdir ? g_tmpdir : "",
-                                string( "template." ) + buf );
-    StringToFile( s, filename );
-    return filename;
+string StringToTemplateFile(const string& s) {
+  static int filenum = 0;
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%03d", ++filenum);
+  string filename = PathJoin(g_tmpdir ? g_tmpdir : "",
+                             string("template.") + buf);
+  StringToFile(s, filename);
+  return filename;
 }
 
 // This writes s to a file and then loads it into a template object.
-Template* StringToTemplate( const string& s, Strip strip ) {
-    return Template::GetTemplate( StringToTemplateFile( s ), strip );
+Template* StringToTemplate(const string& s, Strip strip) {
+  return Template::GetTemplate(StringToTemplateFile(s), strip);
 }
 
 // This is esp. useful for calling from within gdb.
 // The gdb nice-ness is balanced by the need for the caller to delete the buf.
 
-const char* ExpandIs( const Template* tpl, const TemplateDictionary* dict,
-                      PerExpandData* per_expand_data, bool expected ) {
-    string outstring;
-
-    if ( per_expand_data ) {
-        ASSERT( expected == tpl->ExpandWithData( &outstring, dict, per_expand_data ) );
-    }
-    else {
-        ASSERT( expected == tpl->Expand( &outstring, dict ) );
-    }
+const char* ExpandIs(const Template* tpl, const TemplateDictionary *dict,
+                     PerExpandData* per_expand_data, bool expected) {
+  string outstring;
+  if (per_expand_data)
+    ASSERT(expected == tpl->ExpandWithData(&outstring, dict, per_expand_data));
+  else
+    ASSERT(expected == tpl->Expand(&outstring, dict));
 
 
-    char* buf = new char[outstring.size() + 1];
-    strcpy( buf, outstring.c_str() );
-    return buf;
+  char* buf = new char[outstring.size()+1];
+  strcpy(buf, outstring.c_str());
+  return buf;
 }
 
-const char* ExpandWithCacheIs( TemplateCache* cache,
-                               const string& filename, Strip strip,
-                               const TemplateDictionary* dict,
-                               PerExpandData* per_expand_data, bool expected ) {
-    string outstring;
-    ASSERT( expected == cache->ExpandWithData( filename, strip, dict,
-            per_expand_data, &outstring ) );
-
-
-    char* buf = new char[outstring.size() + 1];
-    strcpy( buf, outstring.c_str() );
-    return buf;
-}
-
-void AssertExpandWithDataIs( const Template* tpl,
-                             const TemplateDictionary* dict,
-                             PerExpandData* per_expand_data,
-                             const string& is, bool expected ) {
-    const char* buf = ExpandIs( tpl, dict, per_expand_data, expected );
-
-    if ( strcmp( buf, is.c_str() ) ) {
-        printf( "expected = '%s'\n", is.c_str() );
-        printf( "actual   = '%s'\n", buf );
-    }
-
-    ASSERT( string( buf ) == is );
-    delete [] buf;
-}
-
-void AssertExpandIs( const Template* tpl, const TemplateDictionary* dict,
-                     const string& is, bool expected ) {
-    AssertExpandWithDataIs( tpl, dict, NULL, is, expected );
-}
-
-void AssertExpandWithCacheIs( TemplateCache* cache,
+const char* ExpandWithCacheIs(TemplateCache* cache,
                               const string& filename, Strip strip,
-                              const TemplateDictionary* dict,
-                              PerExpandData* per_expand_data,
-                              const string& is, bool expected ) {
-    const char* buf = ExpandWithCacheIs( cache, filename, strip, dict,
-                                         per_expand_data, expected );
+                              const TemplateDictionary *dict,
+                              PerExpandData* per_expand_data, bool expected) {
+  string outstring;
+  ASSERT(expected == cache->ExpandWithData(filename, strip, dict,
+                                           per_expand_data, &outstring));
 
-    if ( strcmp( buf, is.c_str() ) ) {
-        printf( "expected = '%s'\n", is.c_str() );
-        printf( "actual   = '%s'\n", buf );
-    }
 
-    ASSERT( string( buf ) == is );
-    delete [] buf;
+  char* buf = new char[outstring.size()+1];
+  strcpy(buf, outstring.c_str());
+  return buf;
 }
 
-TemporaryRegisterTemplate::TemporaryRegisterTemplate( const char* name ) {
-    old_namelist_ = TemplateNamelist::namelist_;
+void AssertExpandWithDataIs(const Template* tpl,
+                            const TemplateDictionary *dict,
+                            PerExpandData* per_expand_data,
+                            const string& is, bool expected) {
+  const char* buf = ExpandIs(tpl, dict, per_expand_data, expected);
+  if (strcmp(buf, is.c_str())) {
+    printf("expected = '%s'\n", is.c_str());
+    printf("actual   = '%s'\n", buf);
+  }
+  ASSERT(string(buf) == is);
+  delete [] buf;
+}
 
-    if ( old_namelist_ ) {
-        namelist_ = *old_namelist_;
-    }
+void AssertExpandIs(const Template* tpl, const TemplateDictionary *dict,
+                    const string& is, bool expected) {
+  AssertExpandWithDataIs(tpl, dict, NULL, is, expected);
+}
 
-    namelist_.insert( name );
-    TemplateNamelist::namelist_ = &namelist_;
+void AssertExpandWithCacheIs(TemplateCache* cache,
+                             const string& filename, Strip strip,
+                             const TemplateDictionary *dict,
+                             PerExpandData* per_expand_data,
+                             const string& is, bool expected) {
+  const char* buf = ExpandWithCacheIs(cache, filename, strip, dict,
+                                      per_expand_data, expected);
+  if (strcmp(buf, is.c_str())) {
+    printf("expected = '%s'\n", is.c_str());
+    printf("actual   = '%s'\n", buf);
+  }
+  ASSERT(string(buf) == is);
+  delete [] buf;
+}
+
+TemporaryRegisterTemplate::TemporaryRegisterTemplate(const char* name) {
+  old_namelist_ = TemplateNamelist::namelist_;
+  if (old_namelist_) {
+    namelist_ = *old_namelist_;
+  }
+
+  namelist_.insert(name);
+  TemplateNamelist::namelist_ = &namelist_;
 }
 
 TemporaryRegisterTemplate::~TemporaryRegisterTemplate() {
-    TemplateNamelist::namelist_ = old_namelist_;
+  TemplateNamelist::namelist_ = old_namelist_;
 }
 
 const char* TemplateDictionaryPeer::GetSectionValue(
-    const TemplateString& variable )
-const {
-    // Luckily, TemplateDictionary stores all values with a trailing NUL.
-    return dict_->GetValue( variable ).data();
+    const TemplateString& variable)
+    const {
+  // Luckily, TemplateDictionary stores all values with a trailing NUL.
+  return dict_->GetValue(variable).data();
 }
 
-bool TemplateDictionaryPeer::ValueIs( const TemplateString& variable,
-                                      const TemplateString& expected ) const {
-    return dict_->GetValue( variable ) == expected;
+bool TemplateDictionaryPeer::ValueIs(const TemplateString& variable,
+                                     const TemplateString& expected) const {
+  return dict_->GetValue(variable) == expected;
 }
 
 bool TemplateDictionaryPeer::IsHiddenSection(
-    const TemplateString& name ) const {
-    return dict_->IsHiddenSection( name );
+    const TemplateString& name) const {
+  return dict_->IsHiddenSection(name);
 }
 
 bool TemplateDictionaryPeer::IsUnhiddenSection(
-    const TemplateString& name ) const {
-    return dict_->IsUnhiddenSection( name );
+    const TemplateString& name) const {
+  return dict_->IsUnhiddenSection(name);
 }
 
 bool TemplateDictionaryPeer::IsHiddenTemplate(
-    const TemplateString& name ) const {
-    return dict_->IsHiddenTemplate( name );
+    const TemplateString& name) const {
+  return dict_->IsHiddenTemplate(name);
 }
 
 int TemplateDictionaryPeer::GetSectionDictionaries(
     const TemplateString& section_name,
-    vector<const TemplateDictionary*>* dicts ) const {
-    dicts->clear();
+    vector<const TemplateDictionary*>* dicts) const {
+  dicts->clear();
+  if (dict_->IsHiddenSection(section_name))
+    return 0;
 
-    if ( dict_->IsHiddenSection( section_name ) ) {
-        return 0;
-    }
+  TemplateDictionaryInterface::Iterator* di =
+      dict_->CreateSectionIterator(section_name);
+  while (di->HasNext())
+    dicts->push_back(down_cast<const TemplateDictionary*>(&di->Next()));
+  delete di;
 
-    TemplateDictionaryInterface::Iterator* di =
-        dict_->CreateSectionIterator( section_name );
-
-    while ( di->HasNext() ) {
-        dicts->push_back( down_cast<const TemplateDictionary*>( &di->Next() ) );
-    }
-
-    delete di;
-
-    return static_cast<int>( dicts->size() );
+  return static_cast<int>(dicts->size());
 }
 
 int TemplateDictionaryPeer::GetIncludeDictionaries(
     const TemplateString& section_name,
-    vector<const TemplateDictionary*>* dicts ) const {
-    dicts->clear();
+    vector<const TemplateDictionary*>* dicts) const {
+  dicts->clear();
+  if (dict_->IsHiddenTemplate(section_name))
+    return 0;
 
-    if ( dict_->IsHiddenTemplate( section_name ) ) {
-        return 0;
-    }
+  TemplateDictionaryInterface::Iterator* di =
+      dict_->CreateTemplateIterator(section_name);
+  while (di->HasNext())
+    dicts->push_back(down_cast<const TemplateDictionary*>(&di->Next()));
+  delete di;
 
-    TemplateDictionaryInterface::Iterator* di =
-        dict_->CreateTemplateIterator( section_name );
-
-    while ( di->HasNext() ) {
-        dicts->push_back( down_cast<const TemplateDictionary*>( &di->Next() ) );
-    }
-
-    delete di;
-
-    return static_cast<int>( dicts->size() );
+  return static_cast<int>(dicts->size());
 }
 
 const char* TemplateDictionaryPeer::GetIncludeTemplateName(
-    const TemplateString& variable, int dictnum ) const {
-    return dict_->GetIncludeTemplateName( variable, dictnum );
+    const TemplateString& variable, int dictnum) const {
+  return dict_->GetIncludeTemplateName(variable, dictnum);
 }
 
 const char* TemplateDictionaryPeer::GetFilename() const {
-    return dict_->filename_;
+  return dict_->filename_;
 }
 
 }

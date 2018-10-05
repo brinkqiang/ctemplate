@@ -57,15 +57,11 @@ const char kRootdir[] = { PATH_SEP, '\0' };
 
 // Windows is bi-slashual: we always write separators using PATH_SEP (\),
 // but accept either PATH_SEP or the unix / as a separator on input.
-inline bool IsPathSep( char c ) {
+inline bool IsPathSep(char c) {
 #ifdef _WIN32
-
-    if ( c == '/' ) {
-        return true;
-    }
-
+  if (c == '/') return true;
 #endif
-    return c == PATH_SEP;
+  return c == PATH_SEP;
 }
 
 // ----------------------------------------------------------------------
@@ -77,98 +73,73 @@ inline bool IsPathSep( char c ) {
 //    Returns a string which is the joining.
 // ----------------------------------------------------------------------
 
-string PathJoin( const string& a, const string& b ) {
-    if ( b.empty() ) {
-        return a;    // degenerate case 1
-    }
-
-    if ( a.empty() ) {
-        return b;    // degenerate case 2
-    }
-
-    if ( IsAbspath( b ) ) {
-        return b;    // absolute path
-    }
-
-    if ( IsDirectory( a ) ) {
-        return a + b;    // 'well-formed' case
-    }
-
-    return a + PATH_SEP + b;
+string PathJoin(const string& a, const string& b) {
+  if (b.empty()) return a;                        // degenerate case 1
+  if (a.empty()) return b;                        // degenerate case 2
+  if (IsAbspath(b)) return b;                     // absolute path
+  if (IsDirectory(a)) return a + b;               // 'well-formed' case
+  return a + PATH_SEP + b;
 }
 
-bool IsAbspath( const string& path ) {
+bool IsAbspath(const string& path) {
 #ifdef _WIN32
-
-    if ( path.size() > 2 &&         // c:\ is an absolute path on windows
-            path[1] == ':' && IsPathSep( path[2] ) && isalpha( path[0] ) ) {
-        return true;
-    }
-
+  if (path.size() > 2 &&          // c:\ is an absolute path on windows
+      path[1] == ':' && IsPathSep(path[2]) && isalpha(path[0])) {
+    return true;
+  }
 #endif
-    return !path.empty() && IsPathSep( path[0] );
+  return !path.empty() && IsPathSep(path[0]);
 }
 
-bool IsDirectory( const string& path ) {
-    return !path.empty() && IsPathSep( path[path.size() - 1] );
+bool IsDirectory(const string& path) {
+  return !path.empty() && IsPathSep(path[path.size()-1]);
 }
 
-void NormalizeDirectory( string* dir ) {
-    if ( dir->empty() ) {
-        return;    // I guess "" means 'current directory'
-    }
-
-    if ( !IsPathSep( ( *dir )[dir->size() - 1] ) ) {
-        *dir += PATH_SEP;
-    }
+void NormalizeDirectory(string* dir) {
+  if (dir->empty()) return;   // I guess "" means 'current directory'
+  if (!IsPathSep((*dir)[dir->size()-1]))
+    *dir += PATH_SEP;
 }
 
-string Basename( const string& path ) {
-    for ( const char* p = path.data() + path.size() - 1; p >= path.data(); --p ) {
-        if ( IsPathSep( *p ) ) {
-            return string( p + 1, path.data() + path.size() - ( p + 1 ) );
-        }
-    }
-
-    return path;   // no path-separator found, so whole string is the basename
+string Basename(const string& path) {
+  for (const char* p = path.data() + path.size()-1; p >= path.data(); --p) {
+    if (IsPathSep(*p))
+      return string(p+1, path.data() + path.size() - (p+1));
+  }
+  return path;   // no path-separator found, so whole string is the basename
 }
 
-bool ContainsFullWord( const string& text, const string& word ) {
-    // List of delimiter characters to be considered. Please update the comment in
-    // the header file if you change this list.
-    static const char* delim = ".,_-#*?:";
+bool ContainsFullWord(const string& text, const string& word) {
+  // List of delimiter characters to be considered. Please update the comment in
+  // the header file if you change this list.
+  static const char* delim = ".,_-#*?:";
 
-    const int inputlength = text.length();
-    const int wordlength = word.length();
+  const int inputlength = text.length();
+  const int wordlength = word.length();
 
-    // corner cases
-    if ( inputlength == 0 || wordlength == 0 || wordlength > inputlength ) {
-        return false;
-    }
-
-    int nextmatchpos = 0;  // position from where search in the input string
-
-    while ( nextmatchpos < inputlength ) {
-        const int pos = text.find( word, nextmatchpos );
-
-        if ( pos == string::npos ) {
-            return false;  // no match at all
-        }
-
-        // if found, check that it is surrounded by delimiter characters.
-        bool pre_delimited = ( pos == 0 ) ||
-                             ( strchr( delim, text.at( pos - 1 ) ) != NULL );
-        bool post_delimited = ( pos >= inputlength - wordlength ) ||
-                              ( strchr( delim, text.at( pos + wordlength ) ) != NULL );
-
-        if ( pre_delimited && post_delimited ) {
-            return true;
-        }
-
-        nextmatchpos = ( pos + wordlength + 1 );
-    }
-
+  // corner cases
+  if (inputlength == 0 || wordlength == 0 || wordlength > inputlength) {
     return false;
+  }
+
+  int nextmatchpos = 0;  // position from where search in the input string
+  while (nextmatchpos < inputlength) {
+    const int pos = text.find(word, nextmatchpos);
+    if (pos == string::npos) {
+      return false;  // no match at all
+    }
+
+    // if found, check that it is surrounded by delimiter characters.
+    bool pre_delimited = (pos == 0) ||
+        (strchr(delim, text.at(pos - 1)) != NULL);
+    bool post_delimited = (pos >= inputlength - wordlength) ||
+        (strchr(delim, text.at(pos + wordlength)) != NULL);
+    if (pre_delimited && post_delimited) return true;
+
+    nextmatchpos = (pos + wordlength + 1);
+  }
+
+  return false;
 }
 
 }

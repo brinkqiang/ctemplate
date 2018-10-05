@@ -56,29 +56,27 @@ using std::vector;
 
 namespace ctemplate {
 
-TemplateNamelist::NameListType* TemplateNamelist::namelist_ = NULL;
-TemplateNamelist::MissingListType* TemplateNamelist::missing_list_ = NULL;
-TemplateNamelist::SyntaxListType* TemplateNamelist::bad_syntax_list_ = NULL;
+TemplateNamelist::NameListType *TemplateNamelist::namelist_ = NULL;
+TemplateNamelist::MissingListType *TemplateNamelist::missing_list_ = NULL;
+TemplateNamelist::SyntaxListType *TemplateNamelist::bad_syntax_list_ = NULL;
 
 // Make sure there is a namelist_ and then insert the name onto it
-const char* TemplateNamelist::RegisterTemplate( const char* name ) {
-    if ( !namelist_ ) {
-        namelist_ = new NameListType;
-    }
-
-    pair<NameListType::iterator, bool> insert_result = namelist_->insert( name );
-    // return a pointer to the entry corresponding to name;
-    return insert_result.first->c_str();
+const char* TemplateNamelist::RegisterTemplate(const char* name) {
+  if (!namelist_) {
+    namelist_ = new NameListType;
+  }
+  pair<NameListType::iterator, bool> insert_result = namelist_->insert(name);
+  // return a pointer to the entry corresponding to name;
+  return insert_result.first->c_str();
 }
 
 // GetList
 // Make sure there is a namelist_ and return a reference to it.
 const TemplateNamelist::NameListType& TemplateNamelist::GetList() {
-    if ( !namelist_ ) {
-        namelist_ = new NameListType;
-    }
-
-    return *namelist_;
+  if ( !namelist_ ) {
+    namelist_ = new NameListType;
+  }
+  return *namelist_;
 }
 
 // GetMissingList
@@ -92,32 +90,31 @@ const TemplateNamelist::NameListType& TemplateNamelist::GetList() {
 //   list created in the prior call that refreshed the list.
 //   Returns a sorted list of missing templates.
 const TemplateNamelist::MissingListType& TemplateNamelist::GetMissingList(
-    bool refresh ) {
-    if ( !missing_list_ ) {
-        missing_list_ = new MissingListType;
-        refresh = true;  // always refresh the first time
+    bool refresh) {
+  if (!missing_list_) {
+    missing_list_ = new MissingListType;
+    refresh = true;  // always refresh the first time
+  }
+
+  if (refresh) {
+    const NameListType& the_list = TemplateNamelist::GetList();
+    missing_list_->clear();
+
+    for (NameListType::const_iterator iter = the_list.begin();
+         iter != the_list.end();
+         ++iter) {
+      const string path = Template::FindTemplateFilename(*iter);
+      if (path.empty() || !File::Readable(path.c_str())) {
+        missing_list_->push_back(*iter);
+        LOG(ERROR) << "Template file missing: " << *iter
+                   << " at path: " << (path.empty() ? "(empty path)" : path)
+                   << "\n";
+      }
     }
+  }
 
-    if ( refresh ) {
-        const NameListType& the_list = TemplateNamelist::GetList();
-        missing_list_->clear();
-
-        for ( NameListType::const_iterator iter = the_list.begin();
-                iter != the_list.end();
-                ++iter ) {
-            const string path = Template::FindTemplateFilename( *iter );
-
-            if ( path.empty() || !File::Readable( path.c_str() ) ) {
-                missing_list_->push_back( *iter );
-                LOG( ERROR ) << "Template file missing: " << *iter
-                             << " at path: " << ( path.empty() ? "(empty path)" : path )
-                             << "\n";
-            }
-        }
-    }
-
-    sort( missing_list_->begin(), missing_list_->end() );
-    return *missing_list_;
+  sort(missing_list_->begin(), missing_list_->end());
+  return *missing_list_;
 }
 
 // GetBadSyntaxList
@@ -132,74 +129,66 @@ const TemplateNamelist::MissingListType& TemplateNamelist::GetMissingList(
 //   On subsequent calls, if refresh is false it merely returns the
 //   list created in the prior call that refreshed the list.
 const TemplateNamelist::SyntaxListType& TemplateNamelist::GetBadSyntaxList(
-    bool refresh, Strip strip ) {
-    if ( !bad_syntax_list_ ) {
-        bad_syntax_list_ = new SyntaxListType;
-        refresh = true;  // always refresh the first time
-    }
+    bool refresh, Strip strip) {
+  if (!bad_syntax_list_) {
+    bad_syntax_list_ = new SyntaxListType;
+    refresh = true;  // always refresh the first time
+  }
 
-    if ( refresh ) {
-        const NameListType& the_list = TemplateNamelist::GetList();
+  if (refresh) {
+    const NameListType& the_list = TemplateNamelist::GetList();
 
-        bad_syntax_list_->clear();
+    bad_syntax_list_->clear();
 
-        const MissingListType& missing_list = GetMissingList( true );
-
-        for ( NameListType::const_iterator iter = the_list.begin();
-                iter != the_list.end();
-                ++iter ) {
-            Template* tpl = Template::GetTemplate( ( *iter ), strip );
-
-            if ( !tpl ) {
-                if ( !binary_search( missing_list.begin(), missing_list.end(), *iter ) ) {
-                    // If it's not in the missing list, then we're here because
-                    // it caused an error during parsing
-                    bad_syntax_list_->push_back( *iter );
-                    LOG( ERROR ) << "Error loading template: " << ( *iter ) << "\n";
-                }
-            }
+    const MissingListType& missing_list = GetMissingList(true);
+    for (NameListType::const_iterator iter = the_list.begin();
+         iter != the_list.end();
+         ++iter) {
+      Template *tpl = Template::GetTemplate((*iter), strip);
+      if (!tpl) {
+        if (!binary_search(missing_list.begin(), missing_list.end(), *iter)) {
+          // If it's not in the missing list, then we're here because
+          // it caused an error during parsing
+          bad_syntax_list_->push_back(*iter);
+          LOG(ERROR) << "Error loading template: " << (*iter) << "\n";
         }
+      }
     }
-
-    return *bad_syntax_list_;
+  }
+  return *bad_syntax_list_;
 }
 
 // Look at all the existing template files, and get their lastmod time via stat()
 time_t TemplateNamelist::GetLastmodTime() {
-    time_t retval = -1;
+  time_t retval = -1;
 
-    const NameListType& the_list = TemplateNamelist::GetList();
-
-    for ( NameListType::const_iterator iter = the_list.begin();
-            iter != the_list.end();
-            ++iter ) {
-        // Only prepend root_dir if *iter isn't an absolute path:
-        const string path = Template::FindTemplateFilename( *iter );
-        struct stat statbuf;
-
-        if ( path.empty() || stat( path.c_str(), &statbuf ) != 0 ) {
-            continue;    // ignore files we can't find
-        }
-
-        retval = max( retval, statbuf.st_mtime );
-    }
-
-    return retval;
+  const NameListType& the_list = TemplateNamelist::GetList();
+  for (NameListType::const_iterator iter = the_list.begin();
+       iter != the_list.end();
+       ++iter) {
+    // Only prepend root_dir if *iter isn't an absolute path:
+    const string path = Template::FindTemplateFilename(*iter);
+    struct stat statbuf;
+    if (path.empty() || stat(path.c_str(), &statbuf) != 0)
+      continue;  // ignore files we can't find
+    retval = max(retval, statbuf.st_mtime);
+  }
+  return retval;
 }
 
 // AllDoExist
 bool TemplateNamelist::AllDoExist() {
-    // AllDoExist always refreshes the list, hence the "true"
-    const MissingListType& missing_list = TemplateNamelist::GetMissingList( true );
-    return missing_list.empty();
+  // AllDoExist always refreshes the list, hence the "true"
+  const MissingListType& missing_list = TemplateNamelist::GetMissingList(true);
+  return missing_list.empty();
 }
 
 // IsAllSyntaxOkay
-bool TemplateNamelist::IsAllSyntaxOkay( Strip strip ) {
-    // IsAllSyntaxOkay always refreshes the list, hence the "true"
-    const SyntaxListType& bad_syntax_list =
-        TemplateNamelist::GetBadSyntaxList( true, strip );
-    return bad_syntax_list.empty();
+bool TemplateNamelist::IsAllSyntaxOkay(Strip strip) {
+  // IsAllSyntaxOkay always refreshes the list, hence the "true"
+  const SyntaxListType& bad_syntax_list =
+    TemplateNamelist::GetBadSyntaxList(true, strip);
+  return bad_syntax_list.empty();
 }
 
 }

@@ -59,8 +59,8 @@
 #endif
 
 template<typename To, typename From>     // use like this: down_cast<T*>(foo);
-inline To down_cast( From* f ) {                 // so we only accept pointers
-    return static_cast<To>( f );
+inline To down_cast(From* f) {                   // so we only accept pointers
+  return static_cast<To>(f);
 }
 
 // -- CHECK macros ---------------------------------------------------------
@@ -168,84 +168,68 @@ class Test {};
 
 // -- string-related functions ----------------------------------------------
 
-inline bool safe_strto32( const std::string& s, int* i ) {
-    char* error_pos;
-
-    if ( s.empty() ) {
-        return false;    // no input at all
-    }
-
-    errno = 0;                      // just to be sure
-    *i = strtol( s.c_str(), &error_pos, 10 );
-    return *error_pos == '\0' && errno == 0;
+inline bool safe_strto32(const std::string& s, int* i) {
+  char* error_pos;
+  if (s.empty()) return false;    // no input at all
+  errno = 0;                      // just to be sure
+  *i = strtol(s.c_str(), &error_pos, 10);
+  return *error_pos == '\0' && errno == 0;
 }
 
-inline int atoi32( const char* s ) {
-    return atoi( s );
+inline int atoi32(const char* s) {
+  return atoi(s);
 }
 
-inline void StripWhiteSpace( std::string* str ) {
-    int str_length = str->length();
+inline void StripWhiteSpace(std::string* str) {
+  int str_length = str->length();
 
-    // Strip off leading whitespace.
-    int first = 0;
+  // Strip off leading whitespace.
+  int first = 0;
+  while (first < str_length && isspace(str->at(first))) {
+    ++first;
+  }
+  // If entire string is white space.
+  if (first == str_length) {
+    str->clear();
+    return;
+  }
+  if (first > 0) {
+    str->erase(0, first);
+    str_length -= first;
+  }
 
-    while ( first < str_length && isspace( str->at( first ) ) ) {
-        ++first;
-    }
-
-    // If entire string is white space.
-    if ( first == str_length ) {
-        str->clear();
-        return;
-    }
-
-    if ( first > 0 ) {
-        str->erase( 0, first );
-        str_length -= first;
-    }
-
-    // Strip off trailing whitespace.
-    int last = str_length - 1;
-
-    while ( last >= 0 && isspace( str->at( last ) ) ) {
-        --last;
-    }
-
-    if ( last != ( str_length - 1 ) && last >= 0 ) {
-        str->erase( last + 1, std::string::npos );
-    }
+  // Strip off trailing whitespace.
+  int last = str_length - 1;
+  while (last >= 0 && isspace(str->at(last))) {
+    --last;
+  }
+  if (last != (str_length - 1) && last >= 0) {
+    str->erase(last + 1, std::string::npos);
+  }
 }
 
 inline void SplitStringIntoKeyValuePairs(
     const std::string& s,
     const char* kv_split,    // For instance: "="
     const char* pair_split,  // For instance: ","
-    std::vector< std::pair<std::string, std::string> >* pairs ) {
-    std::string key, value;
-    std::string* add_to = &key;
-
-    for ( std::string::size_type i = 0; i < s.length(); ++i ) {
-        if ( s[i] == kv_split[0] ) {
-            add_to = &value;
-        }
-        else if ( s[i] == pair_split[0] ) {
-            if ( !key.empty() ) {
-                pairs->push_back( std::pair<std::string, std::string>( key, value ) );
-            }
-
-            key.clear();
-            value.clear();
-            add_to = &key;
-        }
-        else {
-            *add_to += s[i];
-        }
+    std::vector< std::pair<std::string, std::string> > *pairs) {
+  std::string key, value;
+  std::string* add_to = &key;
+  for (std::string::size_type i = 0; i < s.length(); ++i) {
+    if (s[i] == kv_split[0]) {
+      add_to = &value;
+    } else if (s[i] == pair_split[0]) {
+      if (!key.empty())
+        pairs->push_back(std::pair<std::string, std::string>(key, value));
+      key.clear();
+      value.clear();
+      add_to = &key;
+    } else {
+      *add_to += s[i];
     }
-
-    if ( !key.empty() ) {
-        pairs->push_back( std::pair<std::string, std::string>( key, value ) );
-    }
+  }
+  if (!key.empty())
+    pairs->push_back(std::pair<std::string, std::string>(key, value));
 }
 
 #endif  // TEMPLATE_UTIL_H_

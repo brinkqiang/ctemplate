@@ -89,74 +89,72 @@ class Template;
 // method.  Your subclass should only define Modify(); for efficiency,
 // we do not make operator() virtual.
 class CTEMPLATE_DLL_DECL TemplateModifier {
-  public:
-    // This function takes a string as input, a char*/size_t pair, and
-    // appends the modified version to the end of outbuf.  In addition
-    // to the variable-value to modify (specified via in/inlen), each
-    // Modify passes in two pieces of user-supplied data:
-    // 1) arg: this is the modifier-value, for modifiers that take a
-    //         value (e.g. "{{VAR:modifier=value}}").  This value
-    //         comes from the template file.  For modifiers that take
-    //         no modval argument, arg will always be "".  For modifiers
-    //         that do take such an argument, arg will always start with "=".
-    // 2) per_expand_data: this is a set of data that the application can
-    //         associate with a TemplateDictionary, and is passed in to
-    //         every variable expanded using that dictionary.  This value
-    //         comes from the source code.
-    virtual void Modify( const char* in, size_t inlen,
-                         const PerExpandData* per_expand_data,
-                         ExpandEmitter* outbuf,
-                         const std::string& arg ) const = 0;
+ public:
+  // This function takes a string as input, a char*/size_t pair, and
+  // appends the modified version to the end of outbuf.  In addition
+  // to the variable-value to modify (specified via in/inlen), each
+  // Modify passes in two pieces of user-supplied data:
+  // 1) arg: this is the modifier-value, for modifiers that take a
+  //         value (e.g. "{{VAR:modifier=value}}").  This value
+  //         comes from the template file.  For modifiers that take
+  //         no modval argument, arg will always be "".  For modifiers
+  //         that do take such an argument, arg will always start with "=".
+  // 2) per_expand_data: this is a set of data that the application can
+  //         associate with a TemplateDictionary, and is passed in to
+  //         every variable expanded using that dictionary.  This value
+  //         comes from the source code.
+  virtual void Modify(const char* in, size_t inlen,
+                      const PerExpandData* per_expand_data,
+                      ExpandEmitter* outbuf,
+                      const std::string& arg) const = 0;
 
-    // This function can be used to speed up modification.  If Modify()
-    // is often a noop, you can implement MightModify() to indicate
-    // situations where it's safe to avoid the call to Modify(), because
-    // Modify() won't do any modifications in this case.  Note it's
-    // always safe to return true here; you should just return false if
-    // you're certain Modify() can be ignored.  This function is
-    // advisory; the template system is not required to call
-    // MightModify() before Modify().
-    virtual bool MightModify( const PerExpandData* /*per_expand_data*/,
-                              const std::string& /*arg*/ ) const {
-        return true;
-    }
+  // This function can be used to speed up modification.  If Modify()
+  // is often a noop, you can implement MightModify() to indicate
+  // situations where it's safe to avoid the call to Modify(), because
+  // Modify() won't do any modifications in this case.  Note it's
+  // always safe to return true here; you should just return false if
+  // you're certain Modify() can be ignored.  This function is
+  // advisory; the template system is not required to call
+  // MightModify() before Modify().
+  virtual bool MightModify(const PerExpandData* /*per_expand_data*/,
+                           const std::string& /*arg*/) const {
+    return true;
+  }
 
-    // We support both modifiers that take an argument, and those that don't.
-    // We also support passing in a string, or a char*/int pair.
-    std::string operator()( const char* in, size_t inlen,
-                            const std::string& arg = "" ) const {
-        std::string out;
-        // we'll reserve some space to account for minimal escaping: say 12%
-        out.reserve( inlen + inlen / 8 + 16 );
-        StringEmitter outbuf( &out );
-        Modify( in, inlen, NULL, &outbuf, arg );
-        return out;
-    }
-    std::string operator()( const std::string& in,
-                            const std::string& arg = "" ) const {
-        return operator()( in.data(), in.size(), arg );
-    }
+  // We support both modifiers that take an argument, and those that don't.
+  // We also support passing in a string, or a char*/int pair.
+  std::string operator()(const char* in, size_t inlen, const std::string& arg="") const {
+    std::string out;
+    // we'll reserve some space to account for minimal escaping: say 12%
+    out.reserve(inlen + inlen/8 + 16);
+    StringEmitter outbuf(&out);
+    Modify(in, inlen, NULL, &outbuf, arg);
+    return out;
+  }
+  std::string operator()(const std::string& in, const std::string& arg="") const {
+    return operator()(in.data(), in.size(), arg);
+  }
 
-    virtual ~TemplateModifier();   // always need a virtual destructor!
+  virtual ~TemplateModifier();   // always need a virtual destructor!
 };
 
 
 // Returns the input verbatim (for testing)
 class CTEMPLATE_DLL_DECL NullModifier : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL NullModifier null_modifier;
 
 // Escapes < > " ' & <non-space whitespace> to &lt; &gt; &quot;
 // &#39; &amp; <space>
 class CTEMPLATE_DLL_DECL HtmlEscape : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL HtmlEscape html_escape;
 
 // Same as HtmlEscape but leaves all whitespace alone. Eg. for <pre>..</pre>
 class CTEMPLATE_DLL_DECL PreEscape : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL PreEscape pre_escape;
 
@@ -164,7 +162,7 @@ extern CTEMPLATE_DLL_DECL PreEscape pre_escape;
 // matched <b> and </b> tags, matched <i> and </i> tags, matched <em> and </em>
 // tags, and matched <span dir=(rtl|ltr)> tags.
 class CTEMPLATE_DLL_DECL SnippetEscape : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL SnippetEscape snippet_escape;
 
@@ -185,7 +183,7 @@ extern CTEMPLATE_DLL_DECL SnippetEscape snippet_escape;
 // interpreting the next token as the value of this string rather than
 // a new attribute (esoteric).
 class CTEMPLATE_DLL_DECL CleanseAttribute : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL CleanseAttribute cleanse_attribute;
 
@@ -193,7 +191,7 @@ extern CTEMPLATE_DLL_DECL CleanseAttribute cleanse_attribute;
 // alphanumeric, space, underscore, period, coma, exclamation mark,
 // pound, percent, and dash.
 class CTEMPLATE_DLL_DECL CleanseCss : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL CleanseCss cleanse_css;
 
@@ -206,26 +204,25 @@ extern CTEMPLATE_DLL_DECL CleanseCss cleanse_css;
 // the src attribute to "#".  This is because this causes some browsers
 // to reload the page, which can cause a DoS.
 class CTEMPLATE_DLL_DECL ValidateUrl : public TemplateModifier {
-  public:
-    explicit ValidateUrl( const TemplateModifier& chained_modifier,
-                          const char* unsafe_url_replacement )
-        : chained_modifier_( chained_modifier ),
-          unsafe_url_replacement_( unsafe_url_replacement ),
-          unsafe_url_replacement_length_( strlen( unsafe_url_replacement ) ) { }
-    MODIFY_SIGNATURE_;
-    static const char* const kUnsafeUrlReplacement;
-    static const char* const kUnsafeImgSrcUrlReplacement;
-  private:
-    const TemplateModifier& chained_modifier_;
-    const char* unsafe_url_replacement_;
-    int unsafe_url_replacement_length_;
+ public:
+  explicit ValidateUrl(const TemplateModifier& chained_modifier,
+                       const char* unsafe_url_replacement)
+      : chained_modifier_(chained_modifier),
+        unsafe_url_replacement_(unsafe_url_replacement),
+        unsafe_url_replacement_length_(strlen(unsafe_url_replacement)) { }
+  MODIFY_SIGNATURE_;
+  static const char* const kUnsafeUrlReplacement;
+  static const char* const kUnsafeImgSrcUrlReplacement;
+ private:
+  const TemplateModifier& chained_modifier_;
+  const char* unsafe_url_replacement_;
+  int unsafe_url_replacement_length_;
 };
 extern CTEMPLATE_DLL_DECL ValidateUrl validate_url_and_html_escape;
 extern CTEMPLATE_DLL_DECL ValidateUrl validate_url_and_javascript_escape;
 extern CTEMPLATE_DLL_DECL ValidateUrl validate_url_and_css_escape;
 extern CTEMPLATE_DLL_DECL ValidateUrl validate_img_src_url_and_html_escape;
-extern CTEMPLATE_DLL_DECL ValidateUrl
-validate_img_src_url_and_javascript_escape;
+extern CTEMPLATE_DLL_DECL ValidateUrl validate_img_src_url_and_javascript_escape;
 extern CTEMPLATE_DLL_DECL ValidateUrl validate_img_src_url_and_css_escape;
 
 // Escapes < > & " ' to &lt; &gt; &amp; &quot; &#39; (same as in HtmlEscape).
@@ -233,7 +230,7 @@ extern CTEMPLATE_DLL_DECL ValidateUrl validate_img_src_url_and_css_escape;
 // than strictly necessary. If this turns out to be an issue, we will need
 // to add a variant just for CDATA.
 class CTEMPLATE_DLL_DECL XmlEscape : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL XmlEscape xml_escape;
 
@@ -242,7 +239,7 @@ extern CTEMPLATE_DLL_DECL XmlEscape xml_escape;
 // This does NOT escape all characters that cannot appear unescaped in a
 // javascript regular expression literal.
 class CTEMPLATE_DLL_DECL JavascriptEscape : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL JavascriptEscape javascript_escape;
 
@@ -275,14 +272,14 @@ extern CTEMPLATE_DLL_DECL JavascriptEscape javascript_escape;
 // . "true" and "false" (without quotes) are also accepted and that's it.
 //
 class CTEMPLATE_DLL_DECL JavascriptNumber : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL JavascriptNumber javascript_number;
 
 // Escapes characters not in [0-9a-zA-Z.,_:*/~!()-] as %-prefixed hex.
 // Space is encoded as a +.
 class CTEMPLATE_DLL_DECL UrlQueryEscape : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL UrlQueryEscape url_query_escape;
 
@@ -290,7 +287,7 @@ extern CTEMPLATE_DLL_DECL UrlQueryEscape url_query_escape;
 // Also escapes < > & to their corresponding \uXXXX representation
 // (\u003C, \u003E, \u0026 respectively).
 class CTEMPLATE_DLL_DECL JsonEscape : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL JsonEscape json_escape;
 
@@ -301,7 +298,7 @@ extern CTEMPLATE_DLL_DECL JsonEscape json_escape;
 // template.  This is meant to be used internally, and is not exported
 // via the g_modifiers list.
 class CTEMPLATE_DLL_DECL PrefixLine : public TemplateModifier {
-    MODIFY_SIGNATURE_;
+  MODIFY_SIGNATURE_;
 };
 extern CTEMPLATE_DLL_DECL PrefixLine prefix_line;
 
@@ -324,7 +321,7 @@ extern CTEMPLATE_DLL_DECL PrefixLine prefix_line;
 // and VAR4 by my_modifierC.  The order of the AddModifier calls is not
 // significant.
 extern CTEMPLATE_DLL_DECL
-bool AddModifier( const char* long_name, const TemplateModifier* modifier );
+bool AddModifier(const char* long_name, const TemplateModifier* modifier);
 
 // Same as AddModifier() above except that the modifier is considered
 // to produce safe output that can be inserted in any context without
@@ -351,8 +348,7 @@ bool AddModifier( const char* long_name, const TemplateModifier* modifier );
 //   is used in a different context (say Javascript) where this
 //   escaping may be inadequate.
 extern CTEMPLATE_DLL_DECL
-bool AddXssSafeModifier( const char* long_name,
-                         const TemplateModifier* modifier );
+bool AddXssSafeModifier(const char* long_name, const TemplateModifier* modifier);
 
 }
 

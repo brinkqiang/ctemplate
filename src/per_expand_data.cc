@@ -42,38 +42,35 @@ namespace ctemplate {
 
 using std::string;
 
-bool PerExpandData::DataEq::operator()( const char* s1, const char* s2 ) const {
-    return ( ( s1 == 0 && s2 == 0 ) ||
-             ( s1 && s2 && *s1 == *s2 && strcmp( s1, s2 ) == 0 ) );
+bool PerExpandData::DataEq::operator()(const char* s1, const char* s2) const {
+  return ((s1 == 0 && s2 == 0) ||
+          (s1 && s2 && *s1 == *s2 && strcmp(s1, s2) == 0));
 }
 
 PerExpandData::~PerExpandData() {
-    delete map_;
+  delete map_;
 }
 
 TemplateAnnotator* PerExpandData::annotator() const {
-    if ( annotator_ != NULL ) {
-        return annotator_;
-    }
-
-    // TextTemplateAnnotator has no static state.  So direct static definition
-    // should be safe.
-    static TextTemplateAnnotator g_default_annotator;
-    return &g_default_annotator;
+  if (annotator_ != NULL) {
+    return annotator_;
+  }
+  // TextTemplateAnnotator has no static state.  So direct static definition
+  // should be safe.
+  static TextTemplateAnnotator g_default_annotator;
+  return &g_default_annotator;
 }
 
-void PerExpandData::InsertForModifiers( const char* key, const void* value ) {
-    if ( !map_ ) {
-        map_ = new DataMap;
-    }
-
-    ( *map_ )[key] = value;
+void PerExpandData::InsertForModifiers(const char* key, const void* value) {
+  if (!map_)
+    map_ = new DataMap;
+  (*map_)[key] = value;
 }
 
-// Retrieve data specific to this Expand call. Returns NULL if key
-// is not found.  This should only be used by template modifiers.
-const void* PerExpandData::LookupForModifiers( const char* key ) const {
-    return map_ ? find_ptr2( *map_, key ) : NULL;
+  // Retrieve data specific to this Expand call. Returns NULL if key
+  // is not found.  This should only be used by template modifiers.
+const void* PerExpandData::LookupForModifiers(const char* key) const {
+  return map_ ? find_ptr2(*map_, key) : NULL;
 }
 
 }

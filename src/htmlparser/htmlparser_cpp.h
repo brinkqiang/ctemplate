@@ -45,11 +45,11 @@ namespace ctemplate_htmlparser {
 class JavascriptParser {
   public:
     enum State {
-        STATE_TEXT = JSPARSER_STATE_TEXT,
-        STATE_Q = JSPARSER_STATE_Q,
-        STATE_DQ = JSPARSER_STATE_DQ,
-        STATE_REGEXP = JSPARSER_STATE_REGEXP,
-        STATE_COMMENT = JSPARSER_STATE_COMMENT,
+      STATE_TEXT = JSPARSER_STATE_TEXT,
+      STATE_Q = JSPARSER_STATE_Q,
+      STATE_DQ = JSPARSER_STATE_DQ,
+      STATE_REGEXP = JSPARSER_STATE_REGEXP,
+      STATE_COMMENT = JSPARSER_STATE_COMMENT,
     };
 };
 
@@ -58,36 +58,36 @@ class HtmlParser {
 
     /* html states */
     enum State {
-        STATE_TEXT = HTMLPARSER_STATE_TEXT,
-        STATE_TAG = HTMLPARSER_STATE_TAG,
-        STATE_ATTR = HTMLPARSER_STATE_ATTR,
-        STATE_VALUE = HTMLPARSER_STATE_VALUE,
-        STATE_COMMENT = HTMLPARSER_STATE_COMMENT,
-        STATE_JS_FILE = HTMLPARSER_STATE_JS_FILE,
-        STATE_CSS_FILE = HTMLPARSER_STATE_CSS_FILE,
-        STATE_ERROR = HTMLPARSER_STATE_ERROR
+      STATE_TEXT = HTMLPARSER_STATE_TEXT,
+      STATE_TAG = HTMLPARSER_STATE_TAG,
+      STATE_ATTR = HTMLPARSER_STATE_ATTR,
+      STATE_VALUE = HTMLPARSER_STATE_VALUE,
+      STATE_COMMENT = HTMLPARSER_STATE_COMMENT,
+      STATE_JS_FILE = HTMLPARSER_STATE_JS_FILE,
+      STATE_CSS_FILE = HTMLPARSER_STATE_CSS_FILE,
+      STATE_ERROR = HTMLPARSER_STATE_ERROR
     };
 
     /* attribute types */
     enum AttributeType {
-        ATTR_NONE = HTMLPARSER_ATTR_NONE,
-        ATTR_REGULAR = HTMLPARSER_ATTR_REGULAR,
-        ATTR_URI = HTMLPARSER_ATTR_URI,
-        ATTR_JS = HTMLPARSER_ATTR_JS,
-        ATTR_STYLE = HTMLPARSER_ATTR_STYLE
+      ATTR_NONE = HTMLPARSER_ATTR_NONE,
+      ATTR_REGULAR = HTMLPARSER_ATTR_REGULAR,
+      ATTR_URI = HTMLPARSER_ATTR_URI,
+      ATTR_JS = HTMLPARSER_ATTR_JS,
+      ATTR_STYLE = HTMLPARSER_ATTR_STYLE
     };
 
     /* Parser modes */
     enum Mode {
-        MODE_HTML = HTMLPARSER_MODE_HTML,
-        MODE_JS = HTMLPARSER_MODE_JS,
-        MODE_CSS = HTMLPARSER_MODE_CSS,
-        MODE_HTML_IN_TAG = HTMLPARSER_MODE_HTML_IN_TAG
+      MODE_HTML = HTMLPARSER_MODE_HTML,
+      MODE_JS = HTMLPARSER_MODE_JS,
+      MODE_CSS = HTMLPARSER_MODE_CSS,
+      MODE_HTML_IN_TAG = HTMLPARSER_MODE_HTML_IN_TAG
     };
 
     HtmlParser() {
-        parser_ = htmlparser_new();
-        CHECK( parser_ != NULL );
+      parser_ = htmlparser_new();
+      CHECK(parser_ != NULL);
     };
 
     /* Parses the input html stream and returns the finishing state.
@@ -97,17 +97,17 @@ class HtmlParser {
      * the behaviour is unspecified. At this point, Reset() or ResetMode()
      * can be called to reset the state so it can be used to parse a new file.
      */
-    int Parse( const char* str, int len ) {
-        return htmlparser_parse( parser_, str, len );
+    int Parse(const char *str, int len) {
+      return htmlparser_parse(parser_, str, len);
     };
 
-    int Parse( const std::string& str ) {
-        return Parse( str.c_str(), static_cast<int>( str.length() ) );
+    int Parse(const std::string &str) {
+      return Parse(str.c_str(), static_cast<int>(str.length()));
     };
 
     /* Returns the current state the parser is in */
     int state() const {
-        return htmlparser_state( parser_ );
+      return htmlparser_state(parser_);
     };
 
     /* Returns the current tag or NULL if not available.
@@ -131,26 +131,26 @@ class HtmlParser {
      * For our current purposes this is not a problem, but we may implement a
      * tag tracking stack in the future for completeness.
      */
-    const char* tag() const {
-        return htmlparser_tag( parser_ );
+    const char *tag() const {
+      return htmlparser_tag(parser_);
     }
 
     /* Returns the current attribute name if inside an attribute name or an
      * attribute value. Returns NULL otherwise. */
-    const char* attribute() const {
-        return htmlparser_attr( parser_ );
+    const char *attribute() const {
+      return htmlparser_attr(parser_);
     }
 
     /* Returns the contents of the current attribute value. */
-    const char* value() const {
-        return htmlparser_value( parser_ );
+    const char *value() const {
+      return htmlparser_value(parser_);
     }
 
     /* Returns true if inside javascript. This can be a javascript block, a
      * javascript attribute value or the parser may just be in javascript mode
      * (HtmlParser::MODE_JS) */
     bool InJavascript() const {
-        return static_cast<bool>( htmlparser_in_js( parser_ ) );
+      return static_cast<bool>(htmlparser_in_js(parser_));
     }
 
     /* Returns true if the parser is currently inside a CSS construct.
@@ -159,24 +159,24 @@ class HtmlParser {
      * that the parser was reset using MODE_CSS using ResetMode().
      */
     bool InCss() const {
-        return static_cast<bool>( htmlparser_in_css( parser_ ) );
+      return static_cast<bool>(htmlparser_in_css(parser_));
     }
 
     /* Returns true if the current attribute is quoted */
     bool IsAttributeQuoted() const {
-        return static_cast<bool>( htmlparser_is_attr_quoted( parser_ ) );
+      return static_cast<bool>(htmlparser_is_attr_quoted(parser_));
     }
 
     /* Returns true if the parser is inside a js string literal.
      */
     bool IsJavascriptQuoted() const {
-        return static_cast<bool>( htmlparser_is_js_quoted( parser_ ) );
+      return static_cast<bool>(htmlparser_is_js_quoted(parser_));
     }
 
     /* Returns the index within the current value or -1 if the parser is not
      * inside an attribute value */
     int ValueIndex() const {
-        return htmlparser_value_index( parser_ );
+      return htmlparser_value_index(parser_);
     }
 
     /* Returns true if this is the first character of a url inside an attribute.
@@ -195,7 +195,7 @@ class HtmlParser {
      *
      */
     bool IsUrlStart() const {
-        return htmlparser_is_url_start( parser_ );
+      return htmlparser_is_url_start(parser_);
     }
 
     /* Returns the current attribute type.
@@ -208,35 +208,35 @@ class HtmlParser {
      *   ATTR_STYLE - Inside a css style attribute
      * */
     int AttributeType() const {
-        return htmlparser_attr_type( parser_ );
+      return htmlparser_attr_type(parser_);
     }
 
     /* Return the current line number. */
     int line_number() const {
-        return htmlparser_get_line_number( parser_ );
+      return htmlparser_get_line_number(parser_);
     }
 
     /* Set the current line number. */
-    void set_line_number( int line ) {
-        return htmlparser_set_line_number( parser_, line );
+    void set_line_number(int line) {
+      return htmlparser_set_line_number(parser_, line);
     }
 
     /* Return the current column number. */
     int column_number() const {
-        return htmlparser_get_column_number( parser_ );
+      return htmlparser_get_column_number(parser_);
     }
 
     /* Set the current line number. */
-    void set_column_number( int column ) {
-        return htmlparser_set_column_number( parser_, column );
+    void set_column_number(int column) {
+      return htmlparser_set_column_number(parser_, column);
     }
 
     /* Retrieve a human readable error message in case an error occurred.
      *
      * NULL is returned if the parser didn't encounter an error.
      */
-    const char* GetErrorMessage() {
-        return htmlparser_get_error_msg( parser_ );
+    const char *GetErrorMessage() {
+      return htmlparser_get_error_msg(parser_);
     }
 
     /* Returns the current state the javascript parser is in.
@@ -244,7 +244,7 @@ class HtmlParser {
      * Should only be used for testing.
      */
     int javascript_state() const {
-        return htmlparser_js_state( parser_ );
+      return htmlparser_js_state(parser_);
     };
 
     /* Resets the parser to it's initial state and changes the parser mode.
@@ -261,8 +261,8 @@ class HtmlParser {
      *                     be used in a template expanded in the
      *                     following context: <a $template>
      */
-    void ResetMode( enum Mode mode ) {
-        return htmlparser_reset_mode( parser_, mode );
+    void ResetMode(enum Mode mode) {
+      return htmlparser_reset_mode(parser_, mode);
     }
 
     /* Resets the parser to it's initial state and to the default mode, which is
@@ -273,7 +273,7 @@ class HtmlParser {
      * created.
      */
     void Reset() {
-        return htmlparser_reset( parser_ );
+      return htmlparser_reset(parser_);
     }
 
     /* Invoked when text is inserted by the caller.
@@ -291,26 +291,26 @@ class HtmlParser {
      * for those.
      */
     bool InsertText() {
-        return static_cast<bool>( htmlparser_insert_text( parser_ ) );
+      return static_cast<bool>(htmlparser_insert_text(parser_));
     }
 
     /* Copies the context of the HtmlParser object referenced in source to the
      * current object.
      */
-    void CopyFrom( const HtmlParser* source ) {
-        CHECK( this != source );
-        CHECK( source != NULL );
-        htmlparser_copy( parser_, source->parser_ );
+    void CopyFrom(const HtmlParser *source) {
+      CHECK(this != source);
+      CHECK(source != NULL);
+      htmlparser_copy(parser_, source->parser_);
     }
 
     ~HtmlParser() {
-        htmlparser_delete( parser_ );
+      htmlparser_delete(parser_);
     };
 
 
   private:
-    htmlparser_ctx* parser_;
-    DISALLOW_COPY_AND_ASSIGN( HtmlParser );
+    htmlparser_ctx *parser_;
+    DISALLOW_COPY_AND_ASSIGN(HtmlParser);
 };
 
 }  // namespace security_streamhtmlparser

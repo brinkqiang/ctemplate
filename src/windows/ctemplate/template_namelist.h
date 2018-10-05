@@ -81,86 +81,86 @@ namespace ctemplate {
 //   exist and are syntactically correct.
 
 class CTEMPLATE_DLL_DECL TemplateNamelist {
-    friend class TemporaryRegisterTemplate;
-  public:
-    // These types should be taken as 'generic' containers.  The only
-    // thing you should do with them is call size() and/or iterate
-    // between begin() and end(), and the only operations we promise
-    // the iterators will support are operator* and operator++.
-    typedef std::unordered_set<std::string, StringHash> NameListType;
-    typedef std::vector<std::string> MissingListType;
-    typedef std::vector<std::string> SyntaxListType;
+  friend class TemporaryRegisterTemplate;
+ public:
+  // These types should be taken as 'generic' containers.  The only
+  // thing you should do with them is call size() and/or iterate
+  // between begin() and end(), and the only operations we promise
+  // the iterators will support are operator* and operator++.
+  typedef std::unordered_set<std::string, StringHash> NameListType;
+  typedef std::vector<std::string> MissingListType;
+  typedef std::vector<std::string> SyntaxListType;
 
-  public:
-    // Takes a name and pushes it onto the static namelist
-    // Returns: a pointer to the entry in namelist which holds the name
-    static const char* RegisterTemplate( const char* name );
+ public:
+  // Takes a name and pushes it onto the static namelist
+  // Returns: a pointer to the entry in namelist which holds the name
+  static const char* RegisterTemplate(const char* name);
 
-    // GetList
-    // Description: Returns the collected list of names.
-    static const NameListType& GetList();
+  // GetList
+  // Description: Returns the collected list of names.
+  static const NameListType& GetList();
 
-    // GetMissingList
-    //   If refresh is true or if it is the first time the function is called
-    //   in the execution of the program, it creates (or clears) the missing
-    //   list and then fills it with the list of
-    //   templates that the program knows about but are missing from
-    //   the template directory.
-    //   If refresh is false and it is not the first time the function is
-    //   called, it merely returns the list created in the
-    //   call when the last refresh was done.
-    //   NOTE: The templates are NOT read, parsed, or cached
-    //   by this function.
-    static const MissingListType& GetMissingList( bool refresh );
+  // GetMissingList
+  //   If refresh is true or if it is the first time the function is called
+  //   in the execution of the program, it creates (or clears) the missing
+  //   list and then fills it with the list of
+  //   templates that the program knows about but are missing from
+  //   the template directory.
+  //   If refresh is false and it is not the first time the function is
+  //   called, it merely returns the list created in the
+  //   call when the last refresh was done.
+  //   NOTE: The templates are NOT read, parsed, or cached
+  //   by this function.
+  static const MissingListType& GetMissingList(bool refresh);
 
-    // GetBadSyntaxList
-    //   If refresh is true or if it is the first time the function is called
-    //   in the execution of the program, it creates (or clears) the "bad
-    //   syntax" list and then fills it with the list of
-    //   templates that the program knows about but contain syntax errors.
-    //   A missing file is not considered a syntax error, and thus is
-    //   not included in this list.
-    //   If refresh is false and it is not the first time the function is
-    //   called, it merely returns the list created in the
-    //   call when the last refresh was done.
-    //   NOTE: The side effect of calling this the first time or
-    //   with refresh equal true is that all templates are parsed and cached.
-    //   Hence they need to be retrieved with the flags that
-    //   the program needs them loaded with (i.e, the strip parameter
-    //   passed to Template::GetTemplate.)
-    static const SyntaxListType& GetBadSyntaxList( bool refresh, Strip strip );
+  // GetBadSyntaxList
+  //   If refresh is true or if it is the first time the function is called
+  //   in the execution of the program, it creates (or clears) the "bad
+  //   syntax" list and then fills it with the list of
+  //   templates that the program knows about but contain syntax errors.
+  //   A missing file is not considered a syntax error, and thus is
+  //   not included in this list.
+  //   If refresh is false and it is not the first time the function is
+  //   called, it merely returns the list created in the
+  //   call when the last refresh was done.
+  //   NOTE: The side effect of calling this the first time or
+  //   with refresh equal true is that all templates are parsed and cached.
+  //   Hence they need to be retrieved with the flags that
+  //   the program needs them loaded with (i.e, the strip parameter
+  //   passed to Template::GetTemplate.)
+  static const SyntaxListType& GetBadSyntaxList(bool refresh, Strip strip);
 
-    // GetLastmodTime
-    //   Iterates through all non-missing templates, and returns the latest
-    //   last-modification time for the template files, as returned by stat().
-    //   This can be used to make sure template files are getting refreshed.
-    static time_t GetLastmodTime();
+  // GetLastmodTime
+  //   Iterates through all non-missing templates, and returns the latest
+  //   last-modification time for the template files, as returned by stat().
+  //   This can be used to make sure template files are getting refreshed.
+  static time_t GetLastmodTime();
 
-    // AllDoExist
-    //   Retrieves the missing list (always refreshing the list)
-    //   and returns true if it contains any names.
-    //   Else, returns false.
-    static bool AllDoExist();
+  // AllDoExist
+  //   Retrieves the missing list (always refreshing the list)
+  //   and returns true if it contains any names.
+  //   Else, returns false.
+  static bool AllDoExist();
 
-    // IsAllSyntaxOkay
-    //   Retrieves the "bad syntax" list (always refreshing the list)
-    //   and returns true if it contains any names.
-    //   Else, returns false.
-    //   NOTE: The side effect of calling this is that all templates are parsed
-    //   and cached, hence they need to be retrieved with the flags that
-    //   the program needs them loaded with. (I.e, the strip parameter
-    //   ultimately passed to Template::GetTemplate.)
-    static bool IsAllSyntaxOkay( Strip strip );
+  // IsAllSyntaxOkay
+  //   Retrieves the "bad syntax" list (always refreshing the list)
+  //   and returns true if it contains any names.
+  //   Else, returns false.
+  //   NOTE: The side effect of calling this is that all templates are parsed
+  //   and cached, hence they need to be retrieved with the flags that
+  //   the program needs them loaded with. (I.e, the strip parameter
+  //   ultimately passed to Template::GetTemplate.)
+  static bool IsAllSyntaxOkay(Strip strip);
 
-  protected:
-    // The static list of names
-    static NameListType* namelist_;
-    static MissingListType* missing_list_;
-    static SyntaxListType* bad_syntax_list_;
+ protected:
+  // The static list of names
+  static NameListType *namelist_;
+  static MissingListType *missing_list_;
+  static SyntaxListType *bad_syntax_list_;
 
-  private:
-    TemplateNamelist( const TemplateNamelist& ); // disallow copying
-    void operator=( const TemplateNamelist& );
+ private:
+  TemplateNamelist(const TemplateNamelist&);   // disallow copying
+  void operator=(const TemplateNamelist&);
 };
 
 }

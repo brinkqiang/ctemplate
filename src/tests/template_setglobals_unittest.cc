@@ -41,30 +41,30 @@ TEST_INIT   // defines RUN_ALL_TESTS()
 using ctemplate::Template;
 using ctemplate::TemplateDictionary;
 
-TEST( SetGlobalValue, TemplateDictionary ) {
-    // Test to see that the global dictionary object gets created when you
-    // first call the static function TemplateDictionary::SetGlobalValue().
-    TemplateDictionary::SetGlobalValue( "TEST_GLOBAL_VAR", "test_value" );
-    TemplateDictionary tpl( "empty" );
-    ctemplate::TemplateDictionaryPeer peer( &tpl );
-    EXPECT_STREQ( peer.GetSectionValue( "TEST_GLOBAL_VAR" ),
-                  "test_value" );
+TEST(SetGlobalValue, TemplateDictionary) {
+  // Test to see that the global dictionary object gets created when you
+  // first call the static function TemplateDictionary::SetGlobalValue().
+  TemplateDictionary::SetGlobalValue("TEST_GLOBAL_VAR", "test_value");
+  TemplateDictionary tpl("empty");
+  ctemplate::TemplateDictionaryPeer peer(&tpl);
+  EXPECT_STREQ(peer.GetSectionValue("TEST_GLOBAL_VAR"),
+               "test_value");
 
 }
 
-TEST( SetGlobalValue, SetRootDirectory ) {
-    // Test to see that the Template static variables get created when you
-    // first call the static function Template::SetRootDirectory().
-    Template::SetTemplateRootDirectory( "/some/directory/path" );
-    // We don't know if we appended a / or a \, so we test indirectly
-    EXPECT_EQ( strlen( "/some/directory/path" ) + 1, // assert they added a char
-               Template::template_root_directory().size() );
-    EXPECT_EQ( 0, memcmp( Template::template_root_directory().c_str(),
-                          "/some/directory/path",
-                          strlen( "/some/directory/path" ) ) );
+TEST(SetGlobalValue, SetRootDirectory) {
+  // Test to see that the Template static variables get created when you
+  // first call the static function Template::SetRootDirectory().
+  Template::SetTemplateRootDirectory("/some/directory/path");
+  // We don't know if we appended a / or a \, so we test indirectly
+  EXPECT_EQ(strlen("/some/directory/path")+1,   // assert they added a char
+            Template::template_root_directory().size());
+  EXPECT_EQ(0, memcmp(Template::template_root_directory().c_str(),
+                      "/some/directory/path",
+                      strlen("/some/directory/path")));
 }
 
-int main( int argc, char** argv ) {
+int main(int argc, char **argv) {
 
-    return RUN_ALL_TESTS();
+  return RUN_ALL_TESTS();
 }

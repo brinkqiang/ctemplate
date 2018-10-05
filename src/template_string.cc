@@ -55,73 +55,69 @@ namespace ctemplate {
 //     64-bits,
 //   - uses a fixed seed.
 // This is not static because template_string_test accesses it directly.
-uint64_t MurmurHash64( const char* ptr, size_t len ) {
-    const uint32_t kMultiplyVal = 0x5bd1e995;
-    const int kShiftVal = 24;
-    const uint32_t kHashSeed1 = 0xc86b14f7;
-    const uint32_t kHashSeed2 = 0x650f5c4d;
+uint64_t MurmurHash64(const char* ptr, size_t len) {
+  const uint32_t kMultiplyVal = 0x5bd1e995;
+  const int kShiftVal = 24;
+  const uint32_t kHashSeed1 = 0xc86b14f7;
+  const uint32_t kHashSeed2 = 0x650f5c4d;
 
-    uint32_t h1 = kHashSeed1 ^ len, h2 = kHashSeed2;
+  uint32_t h1 = kHashSeed1 ^ len, h2 = kHashSeed2;
+  while (len >= 8) {
+    uint32_t k1 = UNALIGNED_LOAD32(ptr);
+    k1 *= kMultiplyVal;
+    k1 ^= k1 >> kShiftVal;
+    k1 *= kMultiplyVal;
 
-    while ( len >= 8 ) {
-        uint32_t k1 = UNALIGNED_LOAD32( ptr );
-        k1 *= kMultiplyVal;
-        k1 ^= k1 >> kShiftVal;
-        k1 *= kMultiplyVal;
-
-        h1 *= kMultiplyVal;
-        h1 ^= k1;
-        ptr += 4;
-
-        uint32_t k2 = UNALIGNED_LOAD32( ptr );
-        k2 *= kMultiplyVal;
-        k2 ^= k2 >> kShiftVal;
-        k2 *= kMultiplyVal;
-
-        h2 *= kMultiplyVal;
-        h2 ^= k2;
-        ptr += 4;
-
-        len -= 8;
-    }
-
-    if ( len >= 4 ) {
-        uint32_t k1 = UNALIGNED_LOAD32( ptr );
-        k1 *= kMultiplyVal;
-        k1 ^= k1 >> kShiftVal;
-        k1 *= kMultiplyVal;
-
-        h1 *= kShiftVal;
-        h1 ^= k1;
-
-        ptr += 4;
-        len -= 4;
-    }
-
-    switch ( len ) {
-    case 3:
-        h2 ^= ptr[2] << 16;  // fall through.
-
-    case 2:
-        h2 ^= ptr[1] << 8;  // fall through.
-
-    case 1:
-        h2 ^= ptr[0];  // fall through.
-
-    default:
-        h2 *= kMultiplyVal;
-    }
-
-    h1 ^= h2 >> 18;
     h1 *= kMultiplyVal;
-    h2 ^= h1 >> 22;
+    h1 ^= k1;
+    ptr += 4;
+
+    uint32_t k2 = UNALIGNED_LOAD32(ptr);
+    k2 *= kMultiplyVal;
+    k2 ^= k2 >> kShiftVal;
+    k2 *= kMultiplyVal;
+
     h2 *= kMultiplyVal;
-    h1 ^= h2 >> 17;
-    h1 *= kMultiplyVal;
+    h2 ^= k2;
+    ptr += 4;
 
-    uint64_t h = h1;
-    h = ( h << 32 ) | h2;
-    return h;
+    len -= 8;
+  }
+
+  if (len >= 4) {
+    uint32_t k1 = UNALIGNED_LOAD32(ptr);
+    k1 *= kMultiplyVal;
+    k1 ^= k1 >> kShiftVal;
+    k1 *= kMultiplyVal;
+
+    h1 *= kShiftVal;
+    h1 ^= k1;
+
+    ptr += 4;
+    len -= 4;
+  }
+
+  switch(len) {
+    case 3:
+      h2 ^= ptr[2] << 16;  // fall through.
+    case 2:
+      h2 ^= ptr[1] << 8;  // fall through.
+    case 1:
+      h2 ^= ptr[0];  // fall through.
+    default:
+      h2 *= kMultiplyVal;
+  }
+
+  h1 ^= h2 >> 18;
+  h1 *= kMultiplyVal;
+  h2 ^= h1 >> 22;
+  h2 *= kMultiplyVal;
+  h1 ^= h2 >> 17;
+  h1 *= kMultiplyVal;
+
+  uint64_t h = h1;
+  h = (h << 32) | h2;
+  return h;
 }
 
 // Unlike StaticTemplateString, it is not a good idea to have a
@@ -129,138 +125,126 @@ uint64_t MurmurHash64( const char* ptr, size_t len ) {
 // provide any lifetime guarantees.  The global template_string_set is
 // an obvious exception.
 struct TemplateStringHasher {
-    size_t operator()( const TemplateString& ts ) const {
-        TemplateId id = ts.GetGlobalId();
-        DCHECK( IsTemplateIdInitialized( id ) );
-        return hasher( id );
-    }
-    // Less operator for MSVC's hash containers.
-    bool operator()( const TemplateString& a, const TemplateString& b ) const {
-        const TemplateId id_a = a.GetGlobalId();
-        const TemplateId id_b = b.GetGlobalId();
-        assert( IsTemplateIdInitialized( id_a ) );
-        assert( IsTemplateIdInitialized( id_b ) );
-        return hasher( id_a, id_b );
-    }
-    TemplateIdHasher hasher;
-    // These two public members are required by msvc.  4 and 8 are defaults.
-    static const size_t bucket_size = 4;
-    static const size_t min_buckets = 8;
+  size_t operator()(const TemplateString& ts) const {
+    TemplateId id = ts.GetGlobalId();
+    DCHECK(IsTemplateIdInitialized(id));
+    return hasher(id);
+  }
+  // Less operator for MSVC's hash containers.
+  bool operator()(const TemplateString& a, const TemplateString& b) const {
+    const TemplateId id_a = a.GetGlobalId();
+    const TemplateId id_b = b.GetGlobalId();
+    assert(IsTemplateIdInitialized(id_a));
+    assert(IsTemplateIdInitialized(id_b));
+    return hasher(id_a, id_b);
+  }
+  TemplateIdHasher hasher;
+  // These two public members are required by msvc.  4 and 8 are defaults.
+  static const size_t bucket_size = 4;
+  static const size_t min_buckets = 8;
 };
 
 namespace {
-Mutex mutex( base::LINKER_INITIALIZED );
+Mutex mutex(base::LINKER_INITIALIZED);
 
 typedef unordered_set<TemplateString, TemplateStringHasher> TemplateStringSet;
 
 TemplateStringSet* template_string_set
-GUARDED_BY( mutex ) PT_GUARDED_BY( mutex ) = NULL;
+GUARDED_BY(mutex) PT_GUARDED_BY(mutex) = NULL;
 
 UnsafeArena* arena
-GUARDED_BY( mutex ) PT_GUARDED_BY( mutex ) = NULL;
+GUARDED_BY(mutex) PT_GUARDED_BY(mutex) = NULL;
 }  // unnamed namespace
 
 
-size_t StringHash::Hash( const char* s, size_t slen ) const {
-    return static_cast<size_t>( MurmurHash64( s, slen ) );
+size_t StringHash::Hash(const char* s, size_t slen) const {
+  return static_cast<size_t>(MurmurHash64(s, slen));
 }
 
-void TemplateString::AddToGlobalIdToNameMap() LOCKS_EXCLUDED( mutex ) {
-    // shouldn't be calling this if we don't have an id.
-    CHECK( IsTemplateIdInitialized( id_ ) );
-    {
-        // Check to see if it's already here.
-        ReaderMutexLock reader_lock( &mutex );
-
-        if ( template_string_set ) {
-            const TemplateString* iter =
-                find_ptr0( *template_string_set, *this );
-
-            if ( iter ) {
-                DCHECK_EQ( TemplateString( ptr_, length_ ),
-                           TemplateString( iter->ptr_, iter->length_ ) )
-                        << "TemplateId collision!";
-                return;
-            }
-        }
-    }
-    WriterMutexLock writer_lock( &mutex );
-
-    // First initialize our data structures if we need to.
-    if ( !template_string_set ) {
-        template_string_set = new TemplateStringSet;
-    }
-
-    if ( !arena ) {
-        arena = new UnsafeArena( 1024 ); // 1024 was picked out of a hat.
-    }
-
-    if ( template_string_set->count( *this ) ) {
+void TemplateString::AddToGlobalIdToNameMap() LOCKS_EXCLUDED(mutex) {
+  // shouldn't be calling this if we don't have an id.
+  CHECK(IsTemplateIdInitialized(id_));
+  {
+    // Check to see if it's already here.
+    ReaderMutexLock reader_lock(&mutex);
+    if (template_string_set) {
+      const TemplateString* iter =
+          find_ptr0(*template_string_set, *this);
+      if (iter) {
+        DCHECK_EQ(TemplateString(ptr_, length_),
+                  TemplateString(iter->ptr_, iter->length_))
+            << "TemplateId collision!";
         return;
+      }
     }
+  }
+  WriterMutexLock writer_lock(&mutex);
+  // First initialize our data structures if we need to.
+  if (!template_string_set) {
+    template_string_set = new TemplateStringSet;
+  }
 
-    // If we are immutable, we can store ourselves directly in the map.
-    // Otherwise, we need to make an immutable copy.
-    if ( is_immutable() ) {
-        template_string_set->insert( *this );
-    }
-    else {
-        const char* immutable_copy = arena->Memdup( ptr_, length_ );
-        template_string_set->insert(
-            TemplateString( immutable_copy, length_, true, id_ ) );
-    }
+  if (!arena) {
+    arena = new UnsafeArena(1024);  // 1024 was picked out of a hat.
+  }
+
+  if (template_string_set->count(*this)) {
+    return;
+  }
+  // If we are immutable, we can store ourselves directly in the map.
+  // Otherwise, we need to make an immutable copy.
+  if (is_immutable()) {
+    template_string_set->insert(*this);
+  } else {
+    const char* immutable_copy = arena->Memdup(ptr_, length_);
+    template_string_set->insert(
+        TemplateString(immutable_copy, length_, true, id_));
+  }
 }
 
 TemplateId TemplateString::GetGlobalId() const {
-    if ( IsTemplateIdInitialized( id_ ) ) {
-        return id_;
-    }
-
-    // Initialize the id and sets the "initialized" flag.
-    return static_cast<TemplateId>( MurmurHash64( ptr_, length_ ) |
-                                    kTemplateStringInitializedFlag );
+  if (IsTemplateIdInitialized(id_)) {
+    return id_;
+  }
+  // Initialize the id and sets the "initialized" flag.
+  return static_cast<TemplateId>(MurmurHash64(ptr_, length_) |
+                                 kTemplateStringInitializedFlag);
 }
 
 // static
-TemplateString TemplateString::IdToString( TemplateId id ) LOCKS_EXCLUDED(
-    mutex ) {
-    ReaderMutexLock reader_lock( &mutex );
-
-    if ( !template_string_set ) {
-        return TemplateString( kStsEmpty );
-    }
-
-    // To search the set by TemplateId, we must first construct a dummy
-    // TemplateString.  This may seem weird, but it lets us use a
-    // hash_set instead of a hash_map.
-    TemplateString id_as_template_string( NULL, 0, false, id );
-    const TemplateString* iter = find_ptr0( *template_string_set,
-                                            id_as_template_string );
-    return iter ? *iter : TemplateString( kStsEmpty );
+TemplateString TemplateString::IdToString(TemplateId id) LOCKS_EXCLUDED(mutex) {
+  ReaderMutexLock reader_lock(&mutex);
+  if (!template_string_set)
+    return TemplateString(kStsEmpty);
+  // To search the set by TemplateId, we must first construct a dummy
+  // TemplateString.  This may seem weird, but it lets us use a
+  // hash_set instead of a hash_map.
+  TemplateString id_as_template_string(NULL, 0, false, id);
+  const TemplateString* iter = find_ptr0(*template_string_set, id_as_template_string);
+  return iter ? *iter : TemplateString(kStsEmpty);
 }
 
 StaticTemplateStringInitializer::StaticTemplateStringInitializer(
-    const StaticTemplateString* sts ) {
-    // Compute the sts's id if it wasn't specified at static-init
-    // time.  If it was specified at static-init time, verify it's
-    // correct.  This is necessary because static-init id's are, by
-    // nature, pre-computed, and the id-generating algorithm may have
-    // changed between the time they were computed and now.
-    if ( sts->do_not_use_directly_.id_ == 0 ) {
-        sts->do_not_use_directly_.id_ = TemplateString( *sts ).GetGlobalId();
-    }
-    else {
-        // Don't use the TemplateString(const StaticTemplateString& sts)
-        // constructor below, since if we do, GetGlobalId will just return
-        // sts->do_not_use_directly_.id_ and the check will be pointless.
-        DCHECK_EQ( TemplateString( sts->do_not_use_directly_.ptr_,
-                                   sts->do_not_use_directly_.length_ ).GetGlobalId(),
-                   sts->do_not_use_directly_.id_ );
-    }
+    const StaticTemplateString* sts) {
+  // Compute the sts's id if it wasn't specified at static-init
+  // time.  If it was specified at static-init time, verify it's
+  // correct.  This is necessary because static-init id's are, by
+  // nature, pre-computed, and the id-generating algorithm may have
+  // changed between the time they were computed and now.
+  if (sts->do_not_use_directly_.id_ == 0) {
+    sts->do_not_use_directly_.id_ = TemplateString(*sts).GetGlobalId();
+  } else {
+    // Don't use the TemplateString(const StaticTemplateString& sts)
+    // constructor below, since if we do, GetGlobalId will just return
+    // sts->do_not_use_directly_.id_ and the check will be pointless.
+    DCHECK_EQ(TemplateString(sts->do_not_use_directly_.ptr_,
+                             sts->do_not_use_directly_.length_).GetGlobalId(),
+              sts->do_not_use_directly_.id_);
+  }
 
-    // Now add this id/name pair to the backwards map from id to name.
-    TemplateString ts_copy_of_sts( *sts );
-    ts_copy_of_sts.AddToGlobalIdToNameMap();
+  // Now add this id/name pair to the backwards map from id to name.
+  TemplateString ts_copy_of_sts(*sts);
+  ts_copy_of_sts.AddToGlobalIdToNameMap();
 }
 
 }

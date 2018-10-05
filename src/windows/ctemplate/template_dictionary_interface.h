@@ -64,83 +64,83 @@ const int kIndent = 2;  // num spaces to indent each level -- used with dump
 // included templates, and the template filenames to be expanded in
 // place of template-include nodes.
 class CTEMPLATE_DLL_DECL TemplateDictionaryInterface {
-  public:
-    // TemplateDictionaryInterface destructor
-    virtual ~TemplateDictionaryInterface() {}
+ public:
+  // TemplateDictionaryInterface destructor
+  virtual ~TemplateDictionaryInterface() {}
 
-  protected:
-    // The interface as follows is used at expand-time by Expand.
-    friend class VariableTemplateNode;
-    friend class SectionTemplateNode;
-    friend class TemplateTemplateNode;
-    // This class reaches into our internals for testing.
-    friend class TemplateDictionaryPeer;
-    friend class TemplateDictionaryPeerIterator;
+ protected:
+  // The interface as follows is used at expand-time by Expand.
+  friend class VariableTemplateNode;
+  friend class SectionTemplateNode;
+  friend class TemplateTemplateNode;
+  // This class reaches into our internals for testing.
+  friend class TemplateDictionaryPeer;
+  friend class TemplateDictionaryPeerIterator;
 
-    // GetSectionValue
-    //   Returns the value of a variable.
-    virtual TemplateString GetValue( const TemplateString& variable ) const = 0;
+  // GetSectionValue
+  //   Returns the value of a variable.
+  virtual TemplateString GetValue(const TemplateString& variable) const = 0;
 
-    // IsHiddenSection
-    //   A predicate to indicate the current hidden/visible state of a section
-    //   whose name is passed to it.
-    virtual bool IsHiddenSection( const TemplateString& name ) const = 0;
+  // IsHiddenSection
+  //   A predicate to indicate the current hidden/visible state of a section
+  //   whose name is passed to it.
+  virtual bool IsHiddenSection(const TemplateString& name) const = 0;
 
-    // Dump a string representation of this dictionary to the supplied string.
-    virtual void DumpToString( std::string* out, int level ) const = 0;
+  // Dump a string representation of this dictionary to the supplied string.
+  virtual void DumpToString(std::string* out, int level) const = 0;
 
-    // TemplateDictionaryInterface is an abstract class, so its constructor is
-    // only visible to its subclasses.
-    TemplateDictionaryInterface() {}
+  // TemplateDictionaryInterface is an abstract class, so its constructor is
+  // only visible to its subclasses.
+  TemplateDictionaryInterface() {}
 
-    class Iterator {
-      protected:
-        Iterator() { }
-      public:
-        virtual ~Iterator() { }
+  class Iterator {
+   protected:
+    Iterator() { }
+   public:
+    virtual ~Iterator() { }
 
-        // Returns false if the iterator is exhausted.
-        virtual bool HasNext() const = 0;
+    // Returns false if the iterator is exhausted.
+    virtual bool HasNext() const = 0;
 
-        // Returns the current referent and increments the iterator to the next.
-        virtual const TemplateDictionaryInterface& Next() = 0;
-    };
+    // Returns the current referent and increments the iterator to the next.
+    virtual const TemplateDictionaryInterface& Next() = 0;
+  };
 
-    // IsHiddenTemplate
-    //   Returns true if the template include is hidden. This is analogous to
-    //   IsHiddenSection, but for template nodes.
-    virtual bool IsHiddenTemplate( const TemplateString& name ) const = 0;
+  // IsHiddenTemplate
+  //   Returns true if the template include is hidden. This is analogous to
+  //   IsHiddenSection, but for template nodes.
+  virtual bool IsHiddenTemplate(const TemplateString& name) const = 0;
 
-    // GetIncludeTemplateName
-    //   Returns the name of the template associated with the given template
-    //   include variable. If more than one dictionary is attached to the include
-    //   symbol, dictnum can be used to disambiguate which include name you mean.
-    virtual const char* GetIncludeTemplateName(
-        const TemplateString& variable, int dictnum ) const = 0;
+  // GetIncludeTemplateName
+  //   Returns the name of the template associated with the given template
+  //   include variable. If more than one dictionary is attached to the include
+  //   symbol, dictnum can be used to disambiguate which include name you mean.
+  virtual const char* GetIncludeTemplateName(
+      const TemplateString& variable, int dictnum) const = 0;
 
-    // CreateTemplateIterator
-    //   A factory method for constructing an iterator representing the
-    //   subdictionaries of the given include node.  The caller is
-    //   responsible for deleting the return value when it's done with it.
-    virtual Iterator* CreateTemplateIterator(
-        const TemplateString& section ) const = 0;
+  // CreateTemplateIterator
+  //   A factory method for constructing an iterator representing the
+  //   subdictionaries of the given include node.  The caller is
+  //   responsible for deleting the return value when it's done with it.
+  virtual Iterator* CreateTemplateIterator(
+      const TemplateString& section) const = 0;
 
-    // CreateSectionIterator
-    //   A factory method for constructing an iterator representing the
-    //   subdictionaries of the given section node.  The caller is
-    //   responsible for deleting the return value when it's done with it.
-    virtual Iterator* CreateSectionIterator(
-        const TemplateString& section ) const = 0;
+  // CreateSectionIterator
+  //   A factory method for constructing an iterator representing the
+  //   subdictionaries of the given section node.  The caller is
+  //   responsible for deleting the return value when it's done with it.
+  virtual Iterator* CreateSectionIterator(
+      const TemplateString& section) const = 0;
 
-    // IsUnhiddenSection
-    //   Returns true if the section has been marked visible and false otherwise.
-    virtual bool IsUnhiddenSection(
-        const TemplateString& name ) const = 0;
+  // IsUnhiddenSection
+  //   Returns true if the section has been marked visible and false otherwise.
+  virtual bool IsUnhiddenSection(
+      const TemplateString& name) const = 0;
 
-  private:
-    // Disallow copy and assign.
-    TemplateDictionaryInterface( const TemplateDictionaryInterface& );
-    void operator=( const TemplateDictionaryInterface& );
+ private:
+  // Disallow copy and assign.
+  TemplateDictionaryInterface(const TemplateDictionaryInterface&);
+  void operator=(const TemplateDictionaryInterface&);
 };
 
 }

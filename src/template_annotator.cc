@@ -64,45 +64,45 @@ using std::string;
 // exact formatting that this implementation happens to produce--
 // so do not consider changes to this lightly.
 
-void TextTemplateAnnotator::EmitOpenInclude( ExpandEmitter* emitter,
-        const string& value ) {
-    EMIT_OPEN_ANNOTATION( emitter, "INC", value );
+void TextTemplateAnnotator::EmitOpenInclude(ExpandEmitter* emitter,
+                                            const string& value) {
+  EMIT_OPEN_ANNOTATION(emitter, "INC", value);
 }
 
-void TextTemplateAnnotator::EmitCloseInclude( ExpandEmitter* emitter ) {
-    EMIT_CLOSE_ANNOTATION( emitter, "INC" );
+void TextTemplateAnnotator::EmitCloseInclude(ExpandEmitter* emitter) {
+  EMIT_CLOSE_ANNOTATION(emitter, "INC");
 }
 
-void TextTemplateAnnotator::EmitOpenFile( ExpandEmitter* emitter,
-        const string& value ) {
-    EMIT_OPEN_ANNOTATION( emitter, "FILE", value );
+void TextTemplateAnnotator::EmitOpenFile(ExpandEmitter* emitter,
+                                         const string& value) {
+  EMIT_OPEN_ANNOTATION(emitter, "FILE", value);
 }
 
-void TextTemplateAnnotator::EmitCloseFile( ExpandEmitter* emitter ) {
-    EMIT_CLOSE_ANNOTATION( emitter, "FILE" );
+void TextTemplateAnnotator::EmitCloseFile(ExpandEmitter* emitter) {
+  EMIT_CLOSE_ANNOTATION(emitter, "FILE");
 }
 
-void TextTemplateAnnotator::EmitOpenSection( ExpandEmitter* emitter,
-        const string& value ) {
-    EMIT_OPEN_ANNOTATION( emitter, "SEC", value );
+void TextTemplateAnnotator::EmitOpenSection(ExpandEmitter* emitter,
+                                            const string& value) {
+  EMIT_OPEN_ANNOTATION(emitter, "SEC", value);
 }
 
-void TextTemplateAnnotator::EmitCloseSection( ExpandEmitter* emitter ) {
-    EMIT_CLOSE_ANNOTATION( emitter, "SEC" );
+void TextTemplateAnnotator::EmitCloseSection(ExpandEmitter* emitter) {
+  EMIT_CLOSE_ANNOTATION(emitter, "SEC");
 }
 
-void TextTemplateAnnotator::EmitOpenVariable( ExpandEmitter* emitter,
-        const string& value ) {
-    EMIT_OPEN_ANNOTATION( emitter, "VAR", value );
+void TextTemplateAnnotator::EmitOpenVariable(ExpandEmitter* emitter,
+                                             const string& value) {
+  EMIT_OPEN_ANNOTATION(emitter, "VAR", value);
 }
 
-void TextTemplateAnnotator::EmitCloseVariable( ExpandEmitter* emitter ) {
-    EMIT_CLOSE_ANNOTATION( emitter, "VAR" );
+void TextTemplateAnnotator::EmitCloseVariable(ExpandEmitter* emitter) {
+  EMIT_CLOSE_ANNOTATION(emitter, "VAR");
 }
 
-void TextTemplateAnnotator::EmitFileIsMissing( ExpandEmitter* emitter,
-        const string& value ) {
-    EMIT_MISSING_ANNOTATION( emitter, "MISSING_FILE", value );
+void TextTemplateAnnotator::EmitFileIsMissing(ExpandEmitter* emitter,
+                                              const string& value) {
+  EMIT_MISSING_ANNOTATION(emitter,"MISSING_FILE", value);
 }
 
 }

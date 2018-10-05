@@ -45,75 +45,85 @@
 namespace ctemplate {
 
 template <class T>
-class str_ref_basic {
-  public:
-    str_ref_basic() {
-        clear();
-    }
+class str_ref_basic
+{
+public:
+  str_ref_basic()
+  {
+    clear();
+  }
 
-    template <class U>
-    str_ref_basic( const U& c ) {
-        if ( c.end() != c.begin() ) {
-            assign( &*c.begin(), c.end() - c.begin() + &*c.begin() );
-        }
-        else {
-            clear();
-        }
-    }
+  template <class U>
+  str_ref_basic(const U& c)
+  {
+    if (c.end() != c.begin())
+      assign(&*c.begin(), c.end() - c.begin() + &*c.begin());
+    else
+      clear();
+  }
 
-    str_ref_basic( const void* b, const void* e ) {
-        assign( b, e );
-    }
+  str_ref_basic(const void* b, const void* e)
+  {
+    assign(b, e);
+  }
 
-    str_ref_basic( const void* b, size_t sz ) {
-        assign( b, sz );
-    }
+  str_ref_basic(const void* b, size_t sz)
+  {
+    assign(b, sz);
+  }
 
-    str_ref_basic( const char* b ) {
-        if ( b ) {
-            assign( b, strlen( b ) );
-        }
-        else {
-            clear();
-        }
-    }
+  str_ref_basic(const char* b)
+  {
+    if (b)
+      assign(b, strlen(b));
+    else
+      clear();
+  }
 
-    void clear() {
-        begin_ = end_ = NULL;
-    }
+  void clear()
+  {
+    begin_ = end_ = NULL;
+  }
 
-    void assign( const void* b, const void* e ) {
-        begin_ = reinterpret_cast<T>( b );
-        end_ = reinterpret_cast<T>( e );
-    }
+  void assign(const void* b, const void* e)
+  {
+    begin_ = reinterpret_cast<T>(b);
+    end_ = reinterpret_cast<T>(e);
+  }
 
-    void assign( const void* b, size_t sz ) {
-        begin_ = reinterpret_cast<T>( b );
-        end_ = begin_ + sz;
-    }
+  void assign(const void* b, size_t sz)
+  {
+    begin_ = reinterpret_cast<T>(b);
+    end_ = begin_ + sz;
+  }
 
-    T begin() const {
-        return begin_;
-    }
+  T begin() const
+  {
+    return begin_;
+  }
 
-    T end() const {
-        return end_;
-    }
+  T end() const
+  {
+    return end_;
+  }
 
-    T data() const {
-        return begin();
-    }
+  T data() const
+  {
+    return begin();
+  }
 
-    size_t size() const {
-        return end() - begin();
-    }
+  size_t size() const
+  {
+    return end() - begin();
+  }
 
-    bool empty() const {
-        return begin() == end();
-    }
-  private:
-    T begin_;
-    T end_;
+  bool empty() const
+  {
+    return begin() == end();
+  }
+private:
+  T begin_;
+  T end_;
 };
 
 typedef str_ref_basic<const unsigned char*> data_ref;

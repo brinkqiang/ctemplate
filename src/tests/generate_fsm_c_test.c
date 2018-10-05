@@ -37,16 +37,17 @@
 #include <stdlib.h>
 #include "htmlparser/statemachine.h"
 
-enum states {
-    STRINGPARSER_STATE_TEXT,
-    STRINGPARSER_STATE_STRING
+enum states  {
+  STRINGPARSER_STATE_TEXT,
+  STRINGPARSER_STATE_STRING
 };
 
 #include "tests/htmlparser_testdata/sample_fsm.c"
 
-int main() {
-    ( void )stringparser_states_internal_names;
-    ( void )stringparser_state_transitions;
-    printf( "DONE.\n" );
-    exit( 0 );
+int main()
+{
+  (void)stringparser_states_internal_names;
+  (void)stringparser_state_transitions;
+  printf("DONE.\n");
+  exit(0);
 }

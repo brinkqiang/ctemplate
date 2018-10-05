@@ -77,7 +77,7 @@ script:
   - cd ..
 
 after_success:
-  - "if [ -f bin/dmtemplatetest ] ; then bin/dmtemplatetest ; fi"
+  - "if [ -f bin/ctemplatetest ] ; then bin/ctemplatetest ; fi"
 
 after_failure:
   - echo failure
@@ -90,7 +90,7 @@ deploy:
   provider: releases
   api_key:
     secure: $GITHUB_ACCESS_TOKEN
-  file: bin/dmtemplatetest
+  file: bin/ctemplatetest
   skip_cleanup: true
   on:
     branch: master

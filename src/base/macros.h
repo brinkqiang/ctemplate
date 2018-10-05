@@ -37,10 +37,10 @@
 # include <libkern/OSByteOrder.h>   // OS X
 # define BSWAP32(x)  OSSwapInt32(x)
 #elif defined(bswap32)              // FreeBSD
-// FreeBSD defines bswap32 as a macro in sys/endian.h (already #included)
+  // FreeBSD defines bswap32 as a macro in sys/endian.h (already #included)
 # define BSWAP32(x)  bswap32(x)
 #elif defined(BSWAP_32)             // Solaris 10
-// Solaris defines BSWSAP_32 as a macro in sys/byteorder.h (already #included)
+  // Solaris defines BSWSAP_32 as a macro in sys/byteorder.h (already #included)
 # define BSWAP32(x)  BSWAP_32(x)
 #elif !defined(BSWAP32)
 # define BSWAP32(x)  ((((x) & 0x000000ff) << 24) |      \
@@ -52,26 +52,26 @@
 #endif
 
 #if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)
-// We know they allow unaligned memory access and are little-endian
+  // We know they allow unaligned memory access and are little-endian
 # define UNALIGNED_LOAD32(_p) (*reinterpret_cast<const uint32_t*>(_p))
 #elif defined(__ppc__) || defined(__ppc64__)
-// We know they allow unaligned memory access and are big-endian
+  // We know they allow unaligned memory access and are big-endian
 # define UNALIGNED_LOAD32(_p) BSWAP32(*reinterpret_cast<const uint32_t*>(_p))
 #elif (BYTE_ORDER == 1234) || (_BYTE_ORDER == 1234) || defined(_LITTLE_ENDIAN)
-// Use memcpy to align the memory properly
-inline uint32_t UNALIGNED_LOAD32( const void* p ) {
+  // Use memcpy to align the memory properly
+  inline uint32_t UNALIGNED_LOAD32(const void *p) {
     uint32_t t;
-    memcpy( &t, p, sizeof( t ) );
+    memcpy(&t, p, sizeof(t));
     return t;
-}
+  }
 #elif (BYTE_ORDER == 4321) || (_BYTE_ORDER == 4321) || defined(_BIG_ENDIAN)
-inline uint32_t UNALIGNED_LOAD32( const void* p ) {
+  inline uint32_t UNALIGNED_LOAD32(const void *p) {
     uint32_t t;
-    memcpy( &t, p, sizeof( t ) );
-    return BSWAP32( t );
-}
+    memcpy(&t, p, sizeof(t));
+    return BSWAP32(t);
+  }
 #else
-// Means we can't find find endian.h on this machine:
+  // Means we can't find find endian.h on this machine:
 # error Need to define UNALIGNED_LOAD32 for this architecture
 #endif
 
