@@ -2,6 +2,29 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT(ctemplate)
 
+IF (WIN32)  
+    MESSAGE(STATUS "Now is windows")
+
+    SET(DMOS_NAME "win")
+
+    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )    
+	IF(MSVC)
+		ADD_DEFINITIONS(/bigobj)
+	ENDIF()
+ELSEIF (APPLE)  
+    MESSAGE(STATUS "Now is Apple systems")  
+
+    SET(DMOS_NAME "mac") 
+
+    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread" )
+ELSEIF (UNIX)  
+    MESSAGE(STATUS "Now is UNIX-like OS")  
+ 
+    SET(DMOS_NAME "lin") 
+    
+    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread" )    
+ENDIF ()
+
 ADD_DEFINITIONS(-DCTEMPLATE_DLL_DECL=)
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/lib)
 
